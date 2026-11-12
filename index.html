@@ -1,0 +1,2706 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hearthtale</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hearthtale">
+<meta name="theme-color" content="#0E6B66">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<style>
+/* Layout: a reading column ("the page") beside a cast sheet, with a fixed transport bar like an audio player. */
+:root{
+  --bg:#EDF1F1; --surface:#FFFFFF; --ink:#16232A; --muted:#566A71; --line:#D2DCDE;
+  --accent:#0E6B66; --accent-ink:#FFFFFF; --hl:#FBE5A0; --hl-ink:#16232A;
+  --c1:#B03F66; --c2:#2C68AD; --c3:#8C5A0E; --c4:#6A4CB0; --c5:#2D7A33; --c6:#BF5019; --c7:#0E6B66;
+  --narr:#566A71;
+  --f-display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --f-read:"Literata", Georgia, "Times New Roman", serif;
+  --f-ui:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F171A; --surface:#172227; --ink:#E2EBEC; --muted:#94A7AC; --line:#2A3A40;
+  --accent:#4FBCB3; --accent-ink:#0F171A; --hl:#5B4B14; --hl-ink:#FFF6D6;
+  --c1:#EE86A9; --c2:#82B4EE; --c3:#E0AE5C; --c4:#B5A0F0; --c5:#84CB88; --c6:#F2995F; --c7:#4FBCB3;
+  --narr:#94A7AC; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F171A; --surface:#172227; --ink:#E2EBEC; --muted:#94A7AC; --line:#2A3A40;
+  --accent:#4FBCB3; --accent-ink:#0F171A; --hl:#5B4B14; --hl-ink:#FFF6D6;
+  --c1:#EE86A9; --c2:#82B4EE; --c3:#E0AE5C; --c4:#B5A0F0; --c5:#84CB88; --c6:#F2995F; --c7:#4FBCB3;
+  --narr:#94A7AC; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:15px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:0 9rem}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.app{max-width:1180px;margin:0 auto}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;padding-block:28px 20px;border-bottom:1px solid var(--line)}
+.brand h1{font-family:var(--f-display);font-weight:700;font-size:2rem;letter-spacing:-0.02em;margin:0;line-height:1.05;text-wrap:balance}
+.brand p{margin:4px 0 0;color:var(--muted)}
+.tabs{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.tabs button{border:0;background:none;padding:7px 16px;border-radius:999px;color:var(--muted);font-weight:500}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:32px;padding-top:24px;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}}
+
+.notice{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c6);padding:12px 14px;border-radius:8px;margin-bottom:16px}
+.sample-note{color:var(--muted);font-size:.9rem;margin-bottom:18px}
+.sample-note button{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;font-weight:500}
+
+.manuscript{font-family:var(--f-read);font-size:1.13rem;line-height:1.8;max-width:66ch;padding-left:8.5rem}
+@media (max-width:1100px){.manuscript{padding-left:0}}
+.manuscript p{margin:0 0 1.05em;position:relative}
+.seg{cursor:pointer;border-radius:3px;transition:background .15s}
+.seg:hover{background:color-mix(in srgb, var(--hl) 45%, transparent)}
+.seg.q{box-shadow:inset 0 -0.32em 0 color-mix(in srgb, var(--rc) 20%, transparent)}
+.seg.now{background:var(--hl);color:var(--hl-ink);box-shadow:none}
+.who{appearance:none;-webkit-appearance:none;border:0;background:none;padding:0 2px;margin:0;
+  font-family:var(--f-ui);font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--rc);
+  border-bottom:1px dotted var(--rc);cursor:pointer;max-width:7.5rem;text-overflow:ellipsis}
+.who-new{font:inherit;font-family:var(--f-ui);font-size:.85rem;width:9rem;background:var(--surface);border:1px solid var(--accent);border-radius:6px;padding:2px 6px;color:var(--ink)}
+.who option{color:var(--ink);background:var(--surface);text-transform:none}
+.who-wrap{position:absolute;left:-8.5rem;width:7.8rem;text-align:right;top:.3em;line-height:1.2}
+@media (max-width:1100px){.who-wrap{position:static;display:block;width:auto;text-align:left;margin-bottom:1px}}
+
+/* edit view */
+.edit label{display:block;font-weight:500;margin-bottom:6px}
+.edit textarea{width:100%;min-height:52vh;resize:vertical;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;font-family:var(--f-read);font-size:1rem;line-height:1.65}
+.edit .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
+.edit .tip{color:var(--muted);font-size:.88rem;margin:10px 0 0;max-width:62ch}
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:8px;font-weight:500}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.file-btn{position:relative;overflow:hidden}
+.file-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+/* cast */
+.cast{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;position:sticky;top:16px;max-height:calc(100vh - 8rem);overflow:auto}
+@media (max-width:900px){.cast{position:static;max-height:none}}
+.cast h2{font-family:var(--f-display);font-size:1.15rem;margin:0}
+.cast .hint{color:var(--muted);font-size:.85rem;margin:4px 0 14px}
+.roles{display:flex;flex-direction:column;gap:0}
+.role{padding:14px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.role-head{display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--rc);flex:none}
+.role-head strong{font-size:1rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.role-head .meta{color:var(--muted);font-size:.78rem;white-space:nowrap}
+.role-head .sp{flex:1}
+.mini{border:1px solid var(--line);background:none;border-radius:6px;padding:2px 8px;font-size:.8rem;color:var(--muted)}
+.mini:hover{color:var(--ink);border-color:var(--muted)}
+.role select.voice{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:.85rem}
+.sliders{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sliders label{font-size:.75rem;color:var(--muted);display:flex;flex-direction:column;gap:2px;text-transform:uppercase;letter-spacing:.06em}
+.sliders input{width:100%;accent-color:var(--rc)}
+.same{display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.same select{flex:1;min-width:0;text-transform:none;letter-spacing:0;font-size:.8rem;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 6px;color:var(--ink)}
+.ai-box{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:16px;display:flex;flex-direction:column;gap:8px;background:color-mix(in srgb, var(--accent) 6%, var(--surface))}
+.ai-head{display:flex;align-items:center;gap:8px}
+.ai-head strong{font-size:.95rem}
+.free{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:1px 7px}
+.ai-box .hint{margin:0}
+.ai-box .hint a{color:var(--accent)}
+.ai-box .small{font-size:.75rem}
+.ai-box input[type=password]{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;width:100%}
+.ai-row{display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.ai-row select{flex:1;min-width:0;text-transform:none;letter-spacing:0;font-size:.85rem;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 6px;color:var(--ink)}
+.chk{display:flex;align-items:center;gap:8px;font-size:.85rem}
+.chk input{accent-color:var(--accent)}
+.ai-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ai-actions .btn{font-size:.85rem;padding:6px 12px}
+.ai-actions .btn:disabled{opacity:.6;cursor:default}
+.ai-state{margin:0;font-size:.85rem;color:var(--accent);min-height:1.2em}
+.ai-state.err{color:var(--c6)}
+.ai-state:empty{display:none}
+.cast-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.lib-btn{font-size:.85rem;padding:5px 12px}
+.persona{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:color-mix(in srgb, var(--rc) 9%, var(--bg));border:1px solid color-mix(in srgb, var(--rc) 35%, var(--line));border-radius:10px;padding:9px 12px}
+.persona:hover{border-color:var(--rc)}
+.p-txt{display:flex;flex-direction:column;min-width:0;flex:1}
+.p-name{font-weight:700;font-size:.95rem}
+.p-desc{color:var(--muted);font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p-change{font-size:.78rem;font-weight:700;color:var(--rc);text-transform:uppercase;letter-spacing:.06em;flex:none}
+.edited{font-style:normal;font-weight:500;font-size:.72rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 6px;margin-left:4px;vertical-align:1px}
+.tune summary{cursor:pointer;color:var(--muted);font-size:.8rem;font-weight:500;padding:2px 0}
+.tune[open]{display:flex;flex-direction:column;gap:10px}
+.tune[open] summary{margin-bottom:2px}
+.base{display:flex;flex-direction:column;gap:4px;font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tune > label:not(.base){display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tune select{text-transform:none;letter-spacing:0;font-size:.85rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 6px;min-width:0;flex:1}
+.save-row{display:flex;gap:6px}
+.save-row input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-size:.85rem}
+body.sheet-open{overflow:hidden}
+.sheet{position:fixed;inset:0;z-index:60;background:color-mix(in srgb, var(--ink) 45%, transparent);display:flex;align-items:flex-end;justify-content:center;
+  padding-top:max(24px, env(safe-area-inset-top, 0px));padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-inset-right, 0px)}
+@media (min-width:700px){.sheet{align-items:center;padding:32px}}
+.sheet-card{background:var(--surface);color:var(--ink);width:100%;max-width:860px;max-height:100%;display:flex;flex-direction:column;border-radius:16px 16px 0 0;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+@media (min-width:700px){.sheet-card{border-radius:16px;max-height:88vh}}
+.sheet-head{display:flex;align-items:flex-start;gap:12px;padding:18px 18px 6px}
+.sh-txt{flex:1;min-width:0}
+.sheet-head h2{font-family:var(--f-display);font-size:1.35rem;margin:0}
+.sheet-head .hint{margin:2px 0 0}
+.lib-tools{padding:6px 18px 10px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line)}
+.lib-tools input{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;width:100%}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 12px;font-size:.82rem;color:var(--muted);font-weight:500}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.lib-tools .small{margin:0;font-size:.78rem}
+.lib-list{overflow-y:auto;padding:4px 18px calc(20px + env(safe-area-inset-bottom, 0px));-webkit-overflow-scrolling:touch}
+.lib-group{font-family:var(--f-ui);font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:18px 0 8px}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));gap:10px}
+.lib-list > .lib-grid:first-child{margin-top:14px}
+.lib-card{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--bg);min-width:0}
+.lib-card.current{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.lc-top{display:flex;align-items:center;gap:6px}
+.lc-top strong{flex:1;font-size:1rem}
+.star{border:0;background:none;font-size:1.15rem;line-height:1;color:var(--c3);padding:2px 4px}
+.lc-desc{margin:0;color:var(--muted);font-size:.85rem}
+.lc-tags{display:flex;flex-wrap:wrap;gap:4px}
+.lc-tags span{font-size:.7rem;border:1px solid var(--line);border-radius:999px;padding:1px 7px;color:var(--muted)}
+.in-use{font-size:.75rem;color:var(--accent);font-weight:500}
+.lc-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px}
+.lc-actions .use{font-size:.82rem;padding:5px 12px}
+.lc-actions .play{padding:4px 10px}
+.lib-empty{color:var(--muted);padding:24px 0;text-align:center}
+.voice-tip{border:1px solid var(--c3);background:color-mix(in srgb, var(--c3) 9%, var(--surface));border-radius:10px;padding:12px;margin:10px 0 4px;font-size:.85rem;display:flex;flex-direction:column;gap:6px}
+.voice-tip p{margin:0;color:var(--ink)}
+.voice-tip strong{font-size:.92rem}
+.shared{margin:0;font-size:.78rem;color:var(--c6)}
+.sliders.one{grid-template-columns:1fr}
+.clarity{font-size:.6rem;letter-spacing:1px;color:var(--accent)}
+.lc-mix{margin:0;font-size:.75rem;color:var(--muted);font-style:italic}
+#libCreate{font-size:.85rem;padding:6px 12px;flex:none}
+.studio{display:flex;flex-direction:column;gap:12px;max-width:560px;padding:16px 0}
+.studio h3{font-family:var(--f-display);font-size:1.15rem;margin:0}
+.studio .hint{margin:0}
+.st-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 3rem;gap:10px;align-items:center}
+.st-row select{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0}
+.st-row input{accent-color:var(--accent);width:100%}
+.st-pct{font-variant-numeric:tabular-nums;text-align:right;font-weight:700;color:var(--accent)}
+.st-mix{margin:0;font-size:.85rem;color:var(--muted)}
+.st-name{display:flex;align-items:center;gap:10px;font-weight:500}
+.st-name input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.st-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+#bScreenOff.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+@media (max-width:640px){ #bSave{display:none} .right{gap:8px} #bScreenOff{font-size:.8rem;padding:6px 10px} }
+.linkish{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;font-size:inherit}
+.add{display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--line);padding-top:14px}
+.add input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+
+/* transport */
+.transport{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-top:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px))}
+.t-inner{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
+.now-info{min-width:7.5rem}
+.now-info .who-now{font-weight:700;color:var(--rc, var(--ink));font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.now-info .pos{color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
+.progress{height:3px;background:var(--line);border-radius:3px;margin-top:6px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0}
+.controls{display:flex;align-items:center;gap:6px}
+.ic{width:40px;height:40px;border-radius:50%;border:0;background:none;display:grid;place-items:center;color:var(--ink)}
+.ic:hover{background:var(--bg)}
+.ic svg{width:20px;height:20px;fill:currentColor}
+.ic.big{width:54px;height:54px;background:var(--accent);color:var(--accent-ink)}
+.ic.big:hover{background:var(--accent);filter:brightness(1.08)}
+.ic.big svg{width:24px;height:24px}
+.ic:disabled{opacity:.4;cursor:default}
+.speed{justify-self:end;display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.85rem}
+.speed select{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+@media (max-width:640px){
+  .t-inner{grid-template-columns:1fr auto;}
+  .controls{grid-column:1 / -1;grid-row:2;justify-content:center}
+}
+#tabCast{display:none}
+html{-webkit-text-size-adjust:100%}
+button,.seg,.who{-webkit-tap-highlight-color:transparent}
+@media (max-width:900px){
+  #tabCast{display:inline-block}
+  body.m-cast main{display:none}
+  body:not(.m-cast) .cast{display:none}
+  .top{padding-block:16px 12px;gap:10px}
+  .brand h1{font-size:1.5rem}
+  .brand p{display:none}
+  .top-actions{width:100%;justify-content:space-between}
+  .layout{padding-top:16px}
+  input,select,textarea{font-size:16px!important}
+  .manuscript{font-size:1.08rem;line-height:1.75}
+  .tabs button{padding:7px 12px}
+}
+@media (max-width:420px){
+  .open-btn .long{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+
+body{margin:0}
+.engine{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px;margin-bottom:12px}
+.engine button{flex:1;border:0;background:none;padding:6px 10px;border-radius:999px;color:var(--muted);font-weight:500;font-size:.85rem}
+.engine button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.model-box{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:16px;font-size:.85rem;display:flex;flex-direction:column;gap:8px}
+.model-box.fail{border-color:var(--c6)}
+.model-box .bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden}
+.model-box .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.model-box label{display:flex;flex-direction:column;gap:4px;color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em}
+.model-box select{text-transform:none;letter-spacing:0;font-size:.85rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 6px}
+.right{justify-self:end;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+.pos .busy{color:var(--accent);font-weight:500}
+.top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.open-btn{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chap-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;max-width:66ch;margin:0 0 22px 8.5rem;padding-bottom:14px;border-bottom:1px solid var(--line)}
+@media (max-width:1100px){.chap-bar{margin-left:0}}
+.book-title{font-family:var(--f-read);font-style:italic;font-size:1.05rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chap-ctl{display:flex;align-items:center;gap:6px;min-width:0}
+.chap-ctl select{min-width:0;max-width:16rem;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.mini:disabled{opacity:.4;cursor:default}
+.drop{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:color-mix(in srgb, var(--bg) 85%, transparent);border:3px dashed var(--accent);font-family:var(--f-display);font-size:1.4rem;color:var(--accent);pointer-events:none}
+
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Hearthtale</h1>
+      <p>Paste a story and hear it performed by a narrator and a different voice for every character.</p>
+    </div>
+    <div class="top-actions">
+    <span class="btn file-btn open-btn">Open<span class="long"> a book or file</span><input id="fileTop" type="file" accept=".pdf,.epub,.docx,.txt,.md,.text,.html,.htm,text/plain,application/pdf,application/epub+zip"></span>
+    <div class="tabs" role="group" aria-label="View">
+      <button id="tabRead" aria-pressed="true">Listen</button>
+      <button id="tabCast" aria-pressed="false">Cast</button>
+      <button id="tabEdit" aria-pressed="false">Edit text</button>
+    </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <main>
+      <div id="notice" class="notice" hidden></div>
+      <section id="readView">
+        <p id="sampleNote" class="sample-note" hidden>This is a short sample scene. <button id="goEdit">Edit text</button> to paste your own story, or open a PDF, eBook, Word or text file with the button above. Tap any line to start reading from there.</p>
+        <div id="chapBar" class="chap-bar" hidden>
+          <div class="book-title" id="bookTitle"></div>
+          <div class="chap-ctl">
+            <button class="mini" id="chPrev" aria-label="Previous chapter">‹ Prev</button>
+            <select id="chSel" aria-label="Chapter"></select>
+            <button class="mini" id="chNext" aria-label="Next chapter">Next ›</button>
+          </div>
+        </div>
+        <article id="manuscript" class="manuscript"></article>
+      </section>
+      <section id="editView" class="edit" hidden>
+        <label for="src">Story text</label>
+        <textarea id="src" spellcheck="false" placeholder="Paste a chapter, a short story or a page here…"></textarea>
+        <div class="row">
+          <button id="doneEdit" class="btn primary">Read it to me</button>
+          <span class="btn file-btn">Open a file<input id="fileIn" type="file" accept=".pdf,.epub,.docx,.txt,.md,.text,.html,.htm,text/plain,application/pdf,application/epub+zip"></span>
+          <button id="useSample" class="btn">Load the sample</button>
+          <button id="clearTxt" class="btn">Clear</button>
+        </div>
+        <p class="tip">Dialogue inside quotation marks is read by the character who says it. The reader works out speakers from tags like “said Mara” or “Tobias asked,” and from who acts in the same paragraph. Words wrapped in *asterisks* or _underscores_ count as italics, and whole italic sentences are read as speech or thoughts. You can also open a PDF, an EPUB eBook, a Word (.docx) file, a web page or a text file, or drag one onto this page.</p>
+      </section>
+    </main>
+
+    <aside class="cast" aria-label="Cast">
+      <div class="engine" role="group" aria-label="Voice type">
+        <button data-eng="ai" aria-pressed="true">Natural voices</button>
+        <button data-eng="device" aria-pressed="false">Device voices</button>
+      </div>
+      <div id="modelBox" class="model-box">
+        <div id="modelMsg">Starting natural voices…</div>
+        <button id="dlVoices" class="btn primary" hidden>Download natural voices</button>
+        <div class="bar"><i id="modelBar"></i></div>
+        <label for="devSel">Voice engine
+          <select id="devSel">
+            <option value="wasm">Standard (about 90 MB download)</option>
+            <option value="wasm-fp32">Best quality, slower (about 330 MB download)</option>
+            <option value="webgpu">Best quality on graphics card, fast (about 330 MB download)</option>
+          </select>
+        </label>
+      </div>
+      <div class="ai-box">
+        <div class="ai-head"><strong>Smart speaker detection</strong><span class="free" id="aiBadge">Free</span></div>
+        <p class="hint" id="aiIntroClaude" hidden>Claude reads each chapter and works out who says every line, and how they say it. The first time, you’ll be asked to allow it. It uses your Claude plan.</p>
+        <p class="hint" id="aiIntroGem">Google’s Gemini AI reads each chapter and works out who says every line, and how they say it. <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Get a free key</a> (sign in with Google, no credit card), then paste it here.</p>
+        <input id="aiKey" type="password" placeholder="Paste your Gemini API key" autocomplete="off" spellcheck="false" aria-label="Gemini API key">
+        <label class="ai-row" id="aiModelRow" hidden>Model <select id="aiModel"></select></label>
+        <label class="chk"><input type="checkbox" id="aiAuto"> Tag each new chapter automatically</label>
+        <div class="ai-actions"><button id="aiRun" class="btn primary">Tag speakers in this chapter</button><button id="aiClear" class="linkish">Use built-in detection</button></div>
+        <p id="aiState" class="ai-state" role="status"></p>
+        <p class="hint small" id="aiPrivacy">Your key is saved only in this browser. On Google’s free plan, the text you send may be used by Google to improve its products.</p>
+      </div>
+      <div class="cast-head"><h2>Cast</h2><button id="openLib" class="btn lib-btn">Voice library</button></div>
+      <div id="voiceTip" class="voice-tip" hidden>
+        <strong>Get clearer, more natural voices</strong>
+        <p>Your device only has basic voices installed. They’re free to upgrade:</p>
+        <p><b>iPhone or iPad:</b> Settings → Accessibility → Read &amp; Speak (or Spoken Content) → Voices → English. Download a few marked <b>Premium</b> or <b>Enhanced</b>, like Ava, Zoe, Evan and Nathan. Then reopen Hearthtale.</p>
+        <p><b>Computer:</b> use the downloaded Hearthtale file with Natural voices, or open it in Microsoft Edge.</p>
+      </div>
+      <p class="hint">Pick a voice for each role. If a line has the wrong speaker, change the name beside it, or choose “+ New character”. If two entries are one person, use “Same person as”. <button id="resetCast" class="linkish">Undo all cast fixes</button></p>
+      <div id="roles" class="roles"></div>
+      <form id="addForm" class="add">
+        <input id="addName" placeholder="Add a character" aria-label="Character name" autocomplete="off">
+        <button class="btn" type="submit">Add</button>
+      </form>
+    </aside>
+  </div>
+</div>
+
+<div id="lib" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="libTitle">
+  <div class="sheet-card">
+    <div class="sheet-head">
+      <div class="sh-txt"><h2 id="libTitle">Voice library</h2><p id="libFor" class="hint"></p></div>
+      <button class="btn primary" id="libCreate">+ Create a voice</button>
+      <button class="ic" id="libClose" aria-label="Close voice library"><svg viewBox="0 0 24 24"><path d="M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6 10.6 12 5 6.4z"/></svg></button>
+    </div>
+    <div class="lib-tools">
+      <input id="libSearch" type="search" placeholder="Search voices, like “British” or “deep”" aria-label="Search voices" autocomplete="off">
+      <div id="libChips" class="chips" role="group" aria-label="Filter voices"></div>
+      <p id="libNote" class="hint small" hidden>These are the voices on your device. For the most natural sound on iPhone, download Premium voices in Settings → Accessibility → Read &amp; Speak → Voices → English.</p>
+    </div>
+    <div id="libList" class="lib-list"></div>
+  </div>
+</div>
+<div id="drop" class="drop" hidden>Drop the file to open it</div>
+<div class="transport">
+  <div class="t-inner">
+    <div class="now-info" id="nowInfo">
+      <div class="who-now" id="whoNow">Ready</div>
+      <div class="pos" id="posNow">—</div>
+      <div class="progress"><i id="prog"></i></div>
+    </div>
+    <div class="controls">
+      <button class="ic" id="bStop" aria-label="Stop and go to start"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></button>
+      <button class="ic" id="bPrev" aria-label="Previous line"><svg viewBox="0 0 24 24"><path d="M7 6h2v12H7zM20 6v12l-9-6z"/></svg></button>
+      <button class="ic big" id="bPlay" aria-label="Play"><svg viewBox="0 0 24 24" id="playIcon"><path d="M8 5v14l11-7z"/></svg></button>
+      <button class="ic" id="bNext" aria-label="Next line"><svg viewBox="0 0 24 24"><path d="M15 6h2v12h-2zM4 6v12l9-6z"/></svg></button>
+    </div>
+    <div class="right">
+      <button id="bScreenOff" class="btn" title="Keeps reading with the screen locked">Screen-off mode</button>
+      <button id="bSave" class="btn">Save as audio file</button>
+      <label class="speed">Speed
+        <select id="speedSel">
+          <option value="0.75">0.75×</option><option value="0.9">0.9×</option><option value="1">1×</option>
+          <option value="1.15">1.15×</option><option value="1.3">1.3×</option><option value="1.5">1.5×</option>
+        </select>
+      </label>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+const SAMPLE = `The lighthouse had been dark for eleven years when Mara climbed its stairs with a lantern in her hand and a crowbar under her arm.
+
+Tobias was waiting at the top. He sat on a crate beside the great glass lens, a blanket over his knees and a tin cup in his hands.
+
+“You're not supposed to be up here,” Tobias said.
+
+“Neither are you,” said Mara. “The council sealed this place before I was born.”
+
+“The council sealed the door. Nobody said a word about the window.” He tipped his cup toward the broken pane behind him. “I keep the light.”
+
+“There is no light.”
+
+“Not yet,” Tobias said, and smiled like he knew something she didn't.
+
+Footsteps clattered on the stairs below. Pip burst through the trapdoor, his cheeks red from the wind.
+
+“Mara! The boats are coming in early, and the fog is rolling over the point. Nobody can see the rocks!”
+
+She looked at the dead lens, then at the old man. “Can it still turn?”
+
+Tobias set down his cup. “It can, if someone strong enough turns the crank.” He glanced at the crowbar under her arm. “And if someone brave enough lights the wick.”
+
+“I'll do the crank,” Pip said at once.
+
+“You'll hold the lantern,” Mara told him, “and you'll stay away from the edge.”`;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const store = {
+  get(k,d){ try{ const v = localStorage.getItem('fireside:'+k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem('fireside:'+k, JSON.stringify(v)); }catch(e){} }
+};
+
+let text = store.get('text', null);
+let usingSample = text == null;
+if (usingSample) text = SAMPLE;
+let ignore = new Set(store.get('ignore', []));
+let extra = store.get('extra', []);
+// Each role's voice. (Saved under new names, so older cast settings start fresh with the voice library.)
+let castDev = store.get('castDev3', {});
+let castAI = store.get('castAI3', {});
+let speed = store.get('speed', 1);
+const IS_PHONE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+let engine = store.get('engine', IS_PHONE ? 'device' : 'ai');
+let merges = store.get('merges', {});
+let aiTags = null;
+// On claude.ai the page can ask Claude directly; elsewhere it uses a Gemini key.
+const HOSTED = !!(window.claude && typeof window.claude.use === 'function');
+let claudeSample = null;
+// Line-by-line speaker fixes are remembered for each chapter's text.
+const ovKey = () => { let h = 5381; for (let i = 0; i < text.length; i++) h = ((h * 33) ^ text.charCodeAt(i)) >>> 0; return 'ov:' + h.toString(36) + ':' + text.length; };
+let overrides = store.get(ovKey(), {});
+let model = null;
+let voices = [];
+const synth = ('speechSynthesis' in window) ? window.speechSynthesis : null;
+
+/* ---------- Parsing ---------- */
+const VERBS = 'said|says|say|asked|asks|replied|replies|answered|answers|whispered|whispers|shouted|shouts|yelled|yells|called|calls|cried|cries|muttered|mutters|murmured|murmurs|added|adds|told|tells|snapped|snaps|laughed|laughs|sighed|sighs|began|begins|continued|continues|demanded|demands|insisted|insists|explained|explains|exclaimed|admitted|admits|agreed|agrees|growled|growls|hissed|hisses|breathed|offered|offers|repeated|repeats|warned|warns|teased|mumbled|mumbles|stammered|declared|announced|announces|pleaded|pleads|protested|roared|roars|screamed|screams|sobbed|groaned|grunted|interrupted|interrupts|suggested|suggests|wondered|whimpered|chuckled|chuckles|grumbled|barked|sneered|scoffed|retorted|responded|responds|remarked|observed|ordered|commanded|begged|joked|promised|confessed|blurted|gasped|panted|purred|drawled|stuttered|whined|sang|corrected|reminded|lied|bellowed|shrieked|squeaked|snarled|spat|croaked|rasped|giggled|huffed|mused|pressed|countered|conceded|ventured|prompted|urged|assured|soothed|cooed|wailed|moaned|yelped|hollered|gushed|babbled|stated|replied|went on|called out|spoke|speaks|instructed|quipped|demanded|inquired|enquired|queried|reasoned|chimed in|piped up|cut in|broke in|shot back|fired back|told|thought|thinks|wondered|wonders|prayed|reflected|realized|realised';
+const TITLES = 'Mr|Mrs|Ms|Mx|Dr|Miss|Lady|Lord|Sir|Madam|Madame|Aunt|Uncle|Captain|Capt|Professor|Prof|Old|Young|Mother|Father|Grandma|Grandpa|Granny|King|Queen|Prince|Princess|Master|Mistress|General|Colonel|Lieutenant|Sergeant|Detective|Officer|Inspector|Agent|Doctor|Mama|Papa|Auntie|Nana|Coach|Pastor|Reverend|Judge|Chief|Sheriff|Deputy|Saint';
+const MALE_T = /^(Mr|Sir|Lord|Uncle|Father|Grandpa|King|Prince|Master|Papa)\b/u;
+const FEM_T = /^(Mrs|Ms|Miss|Lady|Madam|Madame|Aunt|Auntie|Mother|Grandma|Granny|Queen|Princess|Mistress|Mama|Nana)\b/u;
+const NAME = `(?:(?:${TITLES})\\.?\\s+)?\\p{Lu}[\\p{L}'’\\-]+(?:\\s+\\p{Lu}[\\p{L}'’\\-]+)?`;
+const B0 = '(?<![\\p{L}\\p{N}])', B1 = '(?![\\p{L}\\p{N}])';
+const NOUNS = 'old man|old woman|young man|young woman|man|woman|boy|girl|guard|driver|officer|doctor|nurse|king|queen|prince|princess|soldier|stranger|captain|teacher|child|kid|lady|gentleman|waiter|waitress|clerk|priest|witch|wizard|knight|sailor|pilot|farmer|baker|shopkeeper|innkeeper|bartender|receptionist|detective|sergeant|professor|student|voice|figure|creature|dragon|giant|thief|merchant|servant|maid|butler|boss|manager|judge|mother|father|grandmother|grandfather|twins|crowd|stranger|elf|dwarf|goblin|robot|alien|ghost|cat|dog|fox|wolf|bear|owl|bird|old one|elder|healer|cook|chef|sheriff|deputy|man in black|woman in red';
+const MALE_N = /\b(man|men|boy|king|prince|gentleman|waiter|butler|wizard|father|grandfather|knight|husband|son|brother|uncle|dad|grandpa|lord|sir|monk|priest|fellow|guy|lad)$/;
+const FEM_N = /\b(woman|women|girl|queen|princess|lady|mother|grandmother|waitress|maid|witch|wife|daughter|sister|aunt|mom|mum|grandma|nun|lass|actress|hostess)$/;
+const STOP = new Set('I He She They We It You Me Him Us Them The A An And But Then So Someone Everyone Nobody Somebody Anyone Everybody His Her Their My Our Your Its This That These Those There Here What Who Whom When Where Why How Which Yes No Oh Ah Hey Hi Hello Well Now Still Just Even After Before As If Or Not Only Once Finally Instead Again Suddenly Meanwhile Later Also Mom Dad Chapter Part Book Prologue Epilogue Okay Ok Please Sorry Thanks Thank Good Maybe Perhaps Today Tomorrow Tonight Yesterday Sure Fine Right Look Listen Wait Come Go Stop Let Don’t Don\'t Can’t Can\'t Why Whatever Nothing Something Everything Nope Yeah Yep God Jesus Damn Christ Oh'.split(' '));
+const MOODS = [
+  ['whisper', /^(whispered|whispers|murmured|murmurs|breathed|muttered|mutters|mumbled|mumbles|hissed|hisses|cooed|soothed)$/],
+  ['shout', /^(shouted|shouts|yelled|yells|roared|roars|screamed|screams|bellowed|cried|cries|exclaimed|shrieked|barked|snapped|snaps|hollered|called out|yelped|wailed)$/],
+  ['sad', /^(sobbed|whimpered|pleaded|pleads|begged|moaned|groaned|sighed|sighs|whined)$/],
+  ['bright', /^(laughed|laughs|chuckled|chuckles|giggled|teased|joked|quipped|gushed|sang)$/],
+  ['thought', /^(thought|thinks|wondered|wonders|prayed|reflected|realized|realised)$/]
+];
+const titleRe = new RegExp(`^(?:${TITLES})\\.?\\s+`, 'u');
+// Unnamed speakers: "said a tall woman", "the guard asked", "His mother said".
+const ART = '(?:[Tt]he|[Aa]n|[Aa]|[Aa]nother|[Oo]ne of the|[Hh]is|[Hh]er|[Tt]heir|[Mm]y|[Oo]ur|[Yy]our|[Tt]hat|[Tt]his)';
+const NPW = "\\p{Ll}[\\p{Ll}'’\\-]*";
+const NP = `((?:${NPW}\\s+){0,3}?${NPW})`;
+const NP_END = `(?=\\s*[,.!?;:—–…"”’»]|\\s+\\p{Ll}+ly(?![\\p{L}])|\\s+(?:and|as|with|from|before|after|while|who|to|in|at|on|over|through|without|again|then|behind|beside|near|across|inside|outside|under|above|beyond|by|into|out|up|down|for|once|now|still|too)(?![\\p{L}])|\\s*¦|\\s*$)`;
+const HEAD_STOP = /^(words?|thing|things|truth|same|name|answer|question|time|way|rest|lie|lies|story|joke|line|phrase|prayer|password|number|price|obvious|first|last|next|whole|moment|day|night|morning|evening|minute|second|hour|week|year|note|letter|sign|message|text|screen|book|page|door|room|air|silence|thought|thoughts|idea|plan|news|weather|wind|rain|sound|noise|voices?)$/;
+const KEEP_VOICE = /^(?:[Aa]|[Aa]nother|[Tt]he)\s+(?:\p{Ll}+\s+){0,2}voice$/u;
+function descName(art, np){
+  np = np.replace(/\s+/g, ' ').trim();
+  const words = np.split(' ');
+  if (HEAD_STOP.test(words[words.length-1]) && !KEEP_VOICE.test(art + ' ' + np)) return null;
+  if (/^(he|she|it|they|him|her|them|one|other|others)$/.test(np)) return np === 'other' || np === 'others' ? 'The ' + np : null;
+  const a = art.toLowerCase();
+  const lead = (a === 'a' || a === 'an' || a === 'the' || a === 'that' || a === 'this') ? 'The' : art.charAt(0).toUpperCase() + art.slice(1).toLowerCase();
+  return lead + ' ' + np;
+}
+
+// Common first names, used only when the story gives no pronoun clues.
+const F_NAMES = new Set('mary anna anne ann emma olivia ava sophia isabella mia amelia harper evelyn abigail emily ella elizabeth sofia avery scarlett grace chloe victoria riley aria lily aubrey zoey zoe zoë hannah layla nora natalie hazel ellie lucy audrey claire violet stella aurora savannah brooklyn bella skylar paisley everly caroline nova genesis emilia kennedy samantha maya willow kinsley naomi aaliyah elena sarah sara ariana allison gabriella alice madelyn cora ruby eva serenity autumn adeline hailey gianna valentina isla eliana quinn nevaeh ivy sadie piper lydia alexa josephine emery julia delilah arianna vivian kaylee sophie brielle madeline peyton rylee clara hadley melanie mackenzie reagh adalynn liliana aubree jade katherine isabelle natalia raelynn maria athena ximena arya leilani taylor faith rose kylie alexandra mary margaret jennifer linda patricia barbara susan jessica karen nancy betty helen sandra donna carol ruth sharon michelle laura kimberly deborah amy angela melissa brenda rebecca virginia kathleen pamela martha debra amanda stephanie carolyn christine marie janet catherine frances joyce diane alice julie heather teresa doris gloria evelyn jean cheryl mildred katherine joan ashley judith rose janice kelly nicole judy christina kathy theresa beverly denise tammy irene jane lori rachel marilyn andrea kathryn louise sara anne jacqueline wanda bonnie julia ruby lois tina phyllis norma paula diana annie lillian emily robin peggy crystal gladys rita dawn connie florence tracy edna tiffany carmen rosa cindy grace wendy victoria edith kim sherry sylvia josephine thelma shannon sheila ethel ellen elaine marjorie carrie charlotte monica esther pauline emma juanita anita rhonda hazel amber eva debbie april leslie clara lucille jamie joanne eleanor valerie danielle megan alicia suzanne michele gail bertha darlene veronica jill erin geraldine lauren cathy joann lorraine lynn sally regina erica beatrice dolores bernice audrey yvonne annette june samantha marion dana stacy ana renee ida vivian roberta holly brittany melanie loretta yolanda jeanette laurie katie kristen vanessa alma sue elsie beth jeanne hermione ginny molly luna marianne elinor jo meg beth amy scout katniss primrose prim arwen eowyn galadriel daenerys arya sansa cersei brienne leia rey mara pip'.split(' '));
+const M_NAMES = new Set('liam noah oliver elijah william james benjamin lucas henry alexander mason michael ethan daniel jacob logan jackson levi sebastian mateo jack owen theodore aiden samuel joseph john david wyatt matthew luke asher carter julian grayson leo jayden gabriel isaac lincoln anthony hudson dylan ezra thomas charles christopher jaxon maverick josiah isaiah andrew elias joshua nathan caleb ryan adrian miles eli nolan christian aaron cameron ezekiel colton luca landon hunter jonathan santiago axel easton cooper jeremiah angel roman connor jameson robert greyson jordan ian carson jaxson leonardo nicholas dominic austin everett brooks xavier kai jose parker adam jace wesley kayden silas bennett declan waylon weston evan emmett micah ryder beau damian brayden gael rowan harrison bryson sawyer amir kingston jason giovanni vincent ayden chase myles diego nathaniel legend jonah river tyler cole braxton george milo zachary ashton luis jasper kaiden adriel gavin bentley calvin zion juan maxwell max ryker carlos emmanuel jayce lorenzo ivan jude august kevin malachi elliott rhett archer karter arthur luka elliot thiago brandon camden justin jesus maddox king theo enzo matteo emiliano dean hayden finn brody antonio abel alex tristan graham zayden judah xander miguel atlas messiah barrett tucker timothy alan edward leon dawson eric ace victor abraham nicolas jesse charlie patrick walker joel richard beckett blake alejandro avery grant peter oscar matias amari lukas andres arlo colt adonis kyrie steven felix preston marcus holden emilio remington jeremy kaleb brantley bryce mark knox israel phoenix kobe nash griffin caden kenneth kyle hayes jax rafael beckham javier maximus simon paul omar kaden kash lane bryan riley zane louis aidan paxton maximiliano karson cash cayden emerson tobias ronan brian dallas bradley jorge walter josue khalil damien jett kairo zander andre cohen crew hendrix colin chance malakai clayton daxton malcolm lennox martin jaden kayson bodhi francisco cody erick kameron atticus dante jensen cruz finley brady joaquin anderson gunner muhammad zayn derek raymond kendrick ali angelo reid spencer nico jaylen jake prince manuel ali gideon stephen ellis orion rhys frank donald gary larry jerry dennis frank scott raymond gregory samuel benjamin patrick jack henry douglas peter harold carl arthur gerald roger keith jeremy terry lawrence sean christian albert joe ethan austin jesse willie billy bruce bobby johnny jimmy fred harry ron draco neville sirius albus severus hagrid frodo sam samwise gandalf aragorn legolas gimli bilbo pippin merry boromir faramir sauron tyrion jon jaime ned robb bran luke han obi-wan anakin tobias pip'.split(' '));
+const nameGender = n => { const first = n.replace(titleRe, '').split(/\s+/)[0].toLowerCase(); return F_NAMES.has(first) && !M_NAMES.has(first) ? 'f' : M_NAMES.has(first) && !F_NAMES.has(first) ? 'm' : '?'; };
+
+function cleanName(raw){
+  let t = raw.replace(/’/g,"'").replace(/'s$/,'').split(/\s+/);
+  while (t.length && STOP.has(t[0].replace(/\./g,''))) t.shift();
+  while (t.length && STOP.has(t[t.length-1])) t.pop();
+  if (t.length === 1 && new RegExp(`^(?:${TITLES})\\.?$`, 'u').test(t[0]) && !/^(King|Queen|Prince|Princess|Captain|Doctor|Professor|Coach|Sheriff|Judge|Chief|Grandma|Grandpa|Granny|Nana|Mama|Papa)$/.test(t[0])) return null;
+  const n = t.join(' ');
+  return n.length > 1 ? n : null;
+}
+const cleanDesc = raw => { const s = raw.toLowerCase().replace(/[\s,]+/g, ' ').trim(); return s.charAt(0).toUpperCase() + s.slice(1); };
+
+// Find quoted speech. Handles “double”, "straight", «guillemets», and British ‘single’ quotes.
+function quoteRegex(all){
+  const dbl = (all.match(/[“"«]/g) || []).length;
+  const sgl = (all.match(/(?<![\p{L}\p{N}])‘/gu) || []).length;
+  if (sgl > 3 && sgl > dbl * 2)
+    return /(?<![\p{L}\p{N}])‘(?:[^’]|’(?=[\p{L}\p{N}]))*(?:’|$)/gu;
+  return /“[^”]*(?:”|$)|"[^"]*(?:"|$)|«[^»]*(?:»|$)/gu;
+}
+function splitPara(p, QRE){
+  const out = []; let last = 0, m;
+  QRE.lastIndex = 0;
+  while ((m = QRE.exec(p))){
+    if (m.index > last) out.push({t:'n', s:p.slice(last, m.index)});
+    const s = m[0];
+    out.push({t:'q', s, open: s.length < 2 || !/[”"»’]$/.test(s)});
+    last = m.index + s.length;
+    if (!s.length) QRE.lastIndex++;
+  }
+  if (last < p.length) out.push({t:'n', s:p.slice(last)});
+  return splitItalics(out, p);
+}
+// Speech or thoughts set in italics (*like this* or _like this_). Single emphasized words stay narration.
+const ITAL_RE = /\*([^*\n]+?)\*|(?<![\p{L}\p{N}])_([^_\n]+?)_(?![\p{L}\p{N}])/gu;
+const ITAL_STRIP = /\*([^*\n]+?)\*|(?<![\p{L}\p{N}])_([^_\n]+?)_(?![\p{L}\p{N}])/gu;
+const SAYISH = new RegExp(`(?<![\\p{L}])(?:${VERBS})(?![\\p{L}])`, 'iu');
+function splitItalics(pieces, para){
+  const out = [];
+  const verbInPara = SAYISH.test(para.replace(ITAL_STRIP, ''));
+  const wholePara = para.replace(ITAL_STRIP, '').replace(/[\s.,!?—–\-]/g, '') === '';
+  pieces.forEach(pc => {
+    if (pc.t !== 'n'){ out.push(pc); return; }
+    let last = 0, m;
+    ITAL_RE.lastIndex = 0;
+    while ((m = ITAL_RE.exec(pc.s))){
+      const inner = (m[1] || m[2]).trim();
+      const before = pc.s.slice(0, m.index).trim();
+      const prevOut = out.length ? out[out.length-1] : null;
+      const atStart = !before && (!prevOut || prevOut.t === 'q' || /[.!?:]\s*$/.test(prevOut.s));
+      const afterStop = /[.!?”"’»]$/.test(before) || atStart;
+      const afterLead = /[,:—–\-]$/.test(before) && verbInPara;
+      const speechy = inner.split(/\s+/).length >= 2 && /^[\p{Lu}"“‘'0-9]/u.test(inner) && (afterStop || afterLead || wholePara);
+      if (!speechy) continue;
+      if (m.index > last) out.push({t:'n', s:pc.s.slice(last, m.index)});
+      out.push({t:'q', s:m[0], italic:true, open:false});
+      last = m.index + m[0].length;
+    }
+    if (last < pc.s.length) out.push({t:'n', s:pc.s.slice(last)});
+  });
+  return out;
+}
+
+function parse(){
+  const raw = text.replace(/\r\n?/g,'\n').trim();
+  let paras = /\n\s*\n/.test(raw)
+    ? raw.split(/\n\s*\n+/).map(p => p.replace(/\s*\n\s*/g,' ').trim())
+    : raw.split(/\n+/).map(p => p.trim());
+  paras = paras.filter(Boolean);
+  const QRE = quoteRegex(raw);
+  const pieces = paras.map(p => splitPara(p, QRE));
+  const narrOf = pc => pc.filter(x => x.t==='n').map(x => x.s).join(' ¦ ');
+
+  const reA = new RegExp(`${B0}(?:${VERBS})\\s+(${NAME})`, 'gu');
+  const reB = new RegExp(`${B0}(${NAME})\\s+(?:\\p{Ll}+ly\\s+)?(?:${VERBS})${B1}`, 'gu');
+  const genA = new RegExp(`^[\\s,;:—–\\-]*(?:${VERBS})\\s+(${ART})\\s+${NP}${NP_END}`, 'u');
+  const genB = new RegExp(`(?:^[\\s,;:—–\\-]*|[.!?]\\s+)(${ART})\\s+${NP}\\s+(?:\\p{Ll}+ly\\s+)?(?:${VERBS})${B1}`, 'gu');
+  const genP = new RegExp(`${B0}(${NAME})['’]s\\s+${NP}\\s+(?:\\p{Ll}+ly\\s+)?(?:${VERBS})${B1}`, 'gu');
+  const genT1 = new RegExp(`${B0}(?:${VERBS})\\s+[Tt]he\\s+(${TITLES})${B1}`, 'gu');
+  const genT2 = new RegExp(`${B0}[Tt]he\\s+(${TITLES})\\s+(?:\\p{Ll}+ly\\s+)?(?:${VERBS})${B1}`, 'gu');
+  function rawTags(narr){
+    const found = [];
+    for (const re of [reA, reB]){
+      re.lastIndex = 0; let m;
+      while ((m = re.exec(narr))){
+        // "said Harry's mother" is Harry's mother, not Harry.
+        if (re === reA && /['’]s$/.test(m[1])){
+          const w = narr.slice(m.index + m[0].length).match(/^\s+(\p{Ll}+)/u);
+          const base = cleanName(m[1].replace(/['’]s$/, ''));
+          if (w && base){ found.push({n: base + "'s " + w[1], i:m.index, desc:1}); continue; }
+        }
+        const n = cleanName(m[1]); if (n) found.push({n, i:m.index, desc:0});
+      }
+    }
+    for (const re of [genP, genT1, genT2]){
+      re.lastIndex = 0; let m;
+      while ((m = re.exec(narr))){
+        const n = re === genP ? (cleanName(m[1]) ? cleanName(m[1]) + "'s " + m[2].replace(/\s+/g, ' ') : null) : 'The ' + m[1];
+        if (n) found.push({n, i:m.index, desc:1});
+      }
+    }
+    let off = 0;
+    narr.split(' ¦ ').forEach(piece => {
+      const a = piece.match(genA);
+      if (a){ const n = descName(a[1], a[2]); if (n) found.push({n, i:off + a.index, desc:1}); }
+      genB.lastIndex = 0; let m;
+      while ((m = genB.exec(piece))){ const n = descName(m[1], m[2]); if (n) found.push({n, i:off + m.index, desc:1}); }
+      off += piece.length + 3;
+    });
+    return found.sort((a,b) => a.i - b.i);
+  }
+
+  // Pass 1: everyone who is tagged as speaking somewhere.
+  const counts = {}, isDesc = {};
+  pieces.forEach(pc => rawTags(narrOf(pc)).forEach(f => { counts[f.n] = (counts[f.n]||0) + 1; if (f.desc) isDesc[f.n] = 1; }));
+
+  // Also catch characters who only speak after an action ("Edward smiled. ‘Let her go.’"),
+  // when the name looks like a person: it has a title, shows up mid-sentence elsewhere, or is followed by an action verb.
+  const beatRe = new RegExp(`^\\s*(${NAME})\\s+(\\p{Ll}+)`, 'u');
+  pieces.forEach(pc => {
+    if (!pc.some(x => x.t === 'q')) return;
+    pc.filter(x => x.t === 'n').forEach(x => {
+      const m = x.s.match(beatRe); if (!m) return;
+      const n = cleanName(m[1]); if (!n || counts[n]) return;
+      const midSentence = new RegExp(`[\\p{Ll},;]\\s+${reEsc(n)}${B1}`, 'u').test(raw);
+      if (titleRe.test(n) || midSentence || /ed$|^(is|was|has|had|looks|smiles|turns|nods|grins|shrugs|says|stands|sits|walks|leans|stares|frowns|laughs|sighs|reaches|takes|steps|shakes|rolls|raises|puts|holds|pulls|pushes|waves|points|winks|glances|watches|gives|hands|picks)$/.test(m[2]))
+        counts[n] = 0.5;
+    });
+  });
+  const descBeat = new RegExp(`(?:^\\s*|[.!?]\\s+)(${ART})\\s+((?:${NPW}\\s+){0,2}?${NPW})\\s+(\\p{Ll}+)`, 'gu');
+  const ACTION = /ed$|^(is|was|has|had|looks|smiles|turns|nods|grins|shrugs|stands|sits|walks|leans|stares|frowns|laughs|sighs|reaches|takes|steps|shakes|raises|puts|holds|pulls|pushes|waves|points|winks|glances|watches|gives|hands|picks|stood|sat|took|held|gave|ran|shook|rose|came|went|spoke|drew|threw|let|made|got|grew|fell|bit|hid|stuck|swung|struck|leaned|knelt)$/;
+  pieces.forEach(pc => {
+    if (!pc.some(x => x.t === 'q')) return;
+    pc.filter(x => x.t === 'n').forEach(x => {
+      descBeat.lastIndex = 0; let m;
+      while ((m = descBeat.exec(x.s))){
+        if (!ACTION.test(m[3])) continue;
+        const n = descName(m[1], m[2]);
+        if (n && !counts[n] && !/^(The|Another) (one|other|others|people|room|crowd|door)$/.test(n)){ counts[n] = 0.5; isDesc[n] = 1; }
+      }
+    });
+  });
+
+  // Merge different forms of one name ("Harry Potter", "Mr. Potter", "Harry") when it's safe.
+  const alias = {}; Object.keys(counts).forEach(n => alias[n] = n);
+  const singles = Object.keys(counts).filter(n => !isDesc[n] && !/\s/.test(n));
+  const groups = {};
+  Object.keys(counts).forEach(n => {
+    if (isDesc[n] || !/\s/.test(n)) return;
+    const toks = n.replace(titleRe, '').split(/\s+/);
+    const cands = singles.filter(s => toks.includes(s));
+    if (cands.length === 1) (groups[cands[0]] = groups[cands[0]] || [cands[0]]).push(n);
+  });
+  Object.values(groups).forEach(mem => {
+    const hasM = mem.some(n => MALE_T.test(n)), hasF = mem.some(n => FEM_T.test(n));
+    if (hasM && hasF) return;
+    const canon = mem.slice().sort((a,b) => counts[b] - counts[a] || a.length - b.length)[0];
+    mem.forEach(n => alias[n] = canon);
+  });
+  // "The woman" is the same person as "the tall woman" when there is only one woman described that way.
+  Object.keys(counts).forEach(n => {
+    if (!isDesc[n] || !/^The \S+$/.test(n)) return;
+    const head = n.slice(4);
+    const longer = Object.keys(counts).filter(o => o !== n && isDesc[o] && /^The /.test(o) && o.endsWith(' ' + head));
+    if (longer.length === 1) alias[n] = longer[0];
+  });
+  // "Captain" (from "The Captain stepped in") and "The Captain" are one person.
+  Object.keys(counts).forEach(n => { if (!isDesc[n] && counts['The ' + n] && new RegExp(`^(?:${TITLES})$`, 'u').test(n)) alias[n] = 'The ' + n; });
+  const canonOf = n => { let c = alias[n] || n, guard = 0; while (merges[c] && merges[c] !== c && guard++ < 10) c = merges[c]; return c; };
+  const merged = {};
+  Object.keys(counts).forEach(n => { const c = canonOf(n); merged[c] = (merged[c]||0) + counts[n]; });
+  const known = Object.keys(merged).filter(n => !ignore.has(n));
+  extra.forEach(n => { const c = canonOf(n); if (!ignore.has(c) && !known.includes(c)) known.push(c); });
+  const knownSet = new Set(known);
+  const explicit = narr => rawTags(narr).map(f => ({...f, n: canonOf(f.n)})).filter(f => knownSet.has(f.n));
+
+  // Name forms that count as a mention in action beats ("Mara set down the cup.")
+  const forms = Object.keys(alias).filter(n => !isDesc[n] && knownSet.has(canonOf(n)));
+  extra.forEach(n => { if (!forms.includes(n)) forms.push(n); });
+  forms.sort((a,b) => b.length - a.length);
+  const mentionRe = forms.length ? new RegExp(`${B0}(${forms.map(reEsc).join('|')})${B1}`, 'gu') : null;
+  const descForms = {};
+  Object.keys(isDesc).forEach(raw => {
+    const c = canonOf(raw); if (!knownSet.has(c)) return;
+    if (/^The /.test(raw)) ['the','a','an','that'].forEach(a => descForms[a + ' ' + raw.slice(4).toLowerCase()] = c);
+    else descForms[raw.toLowerCase()] = c;
+  });
+  const dKeys = Object.keys(descForms).sort((a,b) => b.length - a.length);
+  const descRe = dKeys.length ? new RegExp(`${B0}(${dKeys.map(k => reEsc(k).replace(/^./u, ch => '[' + ch + ch.toUpperCase() + ']')).join('|')})${B1}`, 'gu') : null;
+  const mentionsIn = s => {
+    const out = [];
+    if (mentionRe) for (const m of s.matchAll(mentionRe)) out.push({i:m.index, n:canonOf(m[1])});
+    if (descRe) for (const m of s.matchAll(descRe)) out.push({i:m.index, n:descForms[m[1].toLowerCase()]});
+    return out.sort((a,b) => a.i - b.i).map(x => x.n);
+  };
+  const mentionsAt = s => {
+    const out = [];
+    if (mentionRe) for (const m of s.matchAll(mentionRe)) out.push({i:m.index, n:canonOf(m[1])});
+    if (descRe) for (const m of s.matchAll(descRe)) out.push({i:m.index, n:descForms[m[1].toLowerCase()]});
+    return out.sort((a,b) => a.i - b.i);
+  };
+  // Who is doing the action in a sentence ("Tobias set down his cup." / "She looked at him.")
+  const LEAD = /^(?:(?:Then|Finally|Suddenly|But|And|Now|Still|So|Slowly|Quickly|Again|Meanwhile|Instead|Later|Abruptly|Gently|Softly|Quietly)[,]?\s+|At last,?\s+)/;
+  function subjectOf(sentence){
+    const s0 = sentence.replace(/^[\s¦,;:.—–\-]+/, '').replace(LEAD, '');
+    if (/^I\b/.test(s0)) return 'Narrator';
+    const pm = s0.match(/^(He|She)\b/); if (pm) return {g: pm[1] === 'She' ? 'f' : 'm'};
+    const ms = mentionsAt(s0);
+    if (ms.length && ms[0].i === 0) return ms[0].n;
+    return null;
+  }
+  const sentencesOf = t => t.split(/(?<=[.!?])\s+|\s*¦\s*/).map(x => x.trim()).filter(x => /[\p{L}]/u.test(x));
+  function beatSubject(pc){
+    const qi = pc.findIndex(x => x.t === 'q');
+    const before = sentencesOf(pc.slice(0, qi).filter(x => x.t === 'n').map(x => x.s).join(' ¦ ')).reverse();
+    const after = sentencesOf(pc.slice(qi + 1).filter(x => x.t === 'n').map(x => x.s).join(' ¦ '));
+    for (const st of before.concat(after)){ const r = subjectOf(st); if (r) return r; }
+    return null;
+  }
+  // Names used to address someone inside speech ("Thanks, Harry.") — that person likely answers next.
+  const vocRe = forms.length ? new RegExp(`(?:^|[,;]\\s*|(?:Hey|Oh|Thanks|Thank you|Hi|Hello|Look|Listen|Please|Sorry|Wait|No|Yes|Well)[,!]?\\s+)(${forms.map(reEsc).join('|')})(?=\\s*[,.!?…—–])`, 'gu') : null;
+
+  // Guess each character's gender from titles, nouns, and nearby pronouns.
+  const gscore = {}; known.forEach(n => gscore[n] = 0);
+  const objRe = new RegExp(`\\b(?:${VERBS}|at|to|with|beside|behind|toward|towards|at)\\s+him\\b|\\b(?:${VERBS}|asked|told|gave|showed|helped|let|made|watched|kissed|hugged|thanked|followed)\\s+her(?=[\\s,.;!?]|$)(?!\\s+\\p{Ll}+(?:s|ed)?\\b(?!\\s))`, 'giu');
+  const fCount = s => (s.match(/\b(she|her|hers|herself)\b/gi)||[]).length;
+  const mCount = s => (s.match(/\b(he|him|his|himself)\b/gi)||[]).length;
+  pieces.forEach(pc => {
+    let prevOnly = null;
+    narrOf(pc).split(/(?<=[.!?])\s+/).forEach(s => {
+      const present = [...new Set(mentionsIn(s))];
+      const t = s.replace(objRe, '');
+      if (present.length === 1){ gscore[present[0]] += fCount(t) - mCount(t); prevOnly = present[0]; }
+      else if (!present.length && prevOnly && /^\s*(?:¦\s*)?(He|She)\b/i.test(s)){ gscore[prevOnly] += /^\s*(?:¦\s*)?She/i.test(s) ? 1 : -1; }
+      else prevOnly = null;
+    });
+  });
+  const gender = {};
+  known.forEach(n => {
+    const forms_ = Object.keys(alias).filter(a => alias[a] === n).concat(n);
+    gender[n] = forms_.some(f => FEM_T.test(f)) || FEM_N.test(n.toLowerCase()) ? 'f'
+      : forms_.some(f => MALE_T.test(f)) || MALE_N.test(n.toLowerCase()) ? 'm'
+      : gscore[n] > 0 ? 'f' : gscore[n] < 0 ? 'm' : nameGender(n);
+  });
+
+  const pronRe = new RegExp(`${B0}(he|she|I)\\s+(?:\\p{Ll}+ly\\s+)?(?:${VERBS})${B1}|${B0}(?:${VERBS})\\s+(he|she)${B1}`, 'iu');
+  const verbRe = new RegExp(`${B0}(${VERBS})${B1}`, 'iu');
+  // Speakers tagged by the AI, when this chapter has been read by it.
+  const aiL = aiTags && aiTags.lines ? aiTags.lines : null;
+  if (aiTags && aiTags.genders) Object.entries(aiTags.genders).forEach(([n, g]) => { const c = canonOf(n); if (g === 'f' || g === 'm') gender[c] = g; else if (!gender[c]) gender[c] = '?'; });
+  const order = [];
+  const touch = n => { if (!n || n === 'Narrator') return; const k = order.lastIndexOf(n); if (k >= 0) order.splice(k, 1); order.push(n); };
+  // Most recent person who could be "he"/"she"; someone of unknown gender counts, and learns it.
+  const byPronoun = g => { for (let k = order.length - 1; k >= 0; k--){ const n = order[k]; if (gender[n] === g || gender[n] === '?' || !gender[n]){ if (gender[n] !== g) gender[n] = g; return n; } } return null; };
+  const lastSp = []; let carry = null, prevNarrName = null, addressee = null;
+  const segs = [], paraSpeaker = [], lines = {};
+
+  pieces.forEach((pc, pi) => {
+    const hasQ = pc.some(x => x.t==='q');
+    const narr = narrOf(pc);
+    const mentions = mentionsIn(narr);
+    let sp = null, mood = '';
+    if (hasQ){
+      const ex = explicit(narr);
+      if (ex.length) sp = ex[0].n;
+      if (!sp){
+        const pm = narr.match(pronRe);
+        if (pm){
+          const pr = (pm[1]||pm[2]).toLowerCase();
+          if (pr === 'i') sp = 'Narrator';
+          else {
+            const g = pr === 'she' ? 'f' : 'm';
+            // Prefer someone named in this same paragraph ("Zoë leaned in. 'Hi,' she whispered.")
+            const local = mentions.find(n => gender[n] === g) || mentions.find(n => gender[n] === '?');
+            sp = local || byPronoun(g) || (g === 'f' ? 'Unnamed woman' : 'Unnamed man');
+            if (!gender[sp]) gender[sp] = g;
+            if (sp && gender[sp] === '?') gender[sp] = g;
+          }
+        }
+      }
+      if (!sp){
+        const subj = beatSubject(pc);
+        if (typeof subj === 'string') sp = subj;
+        else if (subj){
+          sp = mentions.find(n => gender[n] === subj.g) || byPronoun(subj.g) || (subj.g === 'f' ? 'Unnamed woman' : 'Unnamed man');
+          if (!gender[sp] || gender[sp] === '?') gender[sp] = subj.g;
+        }
+      }
+      // Names addressed inside this speech belong to the listener, not the speaker.
+      const ownVoc = new Set();
+      if (vocRe) pc.filter(x => x.t === 'q').forEach(x => { vocRe.lastIndex = 0; let v; while ((v = vocRe.exec(x.s.replace(/^[“"‘«*_]+/, '')))) ownVoc.add(canonOf(v[1])); });
+      if (sp && ownVoc.has(sp) && !ex.length) sp = null;
+      if (!sp && mentions.length) sp = mentions.find(n => !ownVoc.has(n)) || null;
+      if (!sp && carry) sp = carry;
+      if (!sp && prevNarrName) sp = prevNarrName;
+      if (!sp && addressee && addressee !== lastSp[lastSp.length-1]) sp = addressee;
+      if (sp && ownVoc.has(sp) && !ex.length) sp = null;
+      if (!sp && lastSp.length >= 2) sp = lastSp[lastSp.length-2];
+      if (sp && ownVoc.has(sp) && !ex.length) sp = [...lastSp].reverse().find(n => !ownVoc.has(n)) || null;
+      if (!sp) sp = 'Someone';
+      if (aiL && aiL[pi] && !ignore.has(canonOf(aiL[pi]))) sp = canonOf(aiL[pi]);
+      if (overrides[pi]) sp = overrides[pi];
+      if (lastSp[lastSp.length-1] !== sp) lastSp.push(sp);
+      lines[sp] = (lines[sp]||0) + 1;
+      const lastQ = [...pc].reverse().find(x => x.t==='q');
+      carry = lastQ && lastQ.open ? sp : null;
+      prevNarrName = null;
+      addressee = null;
+      if (vocRe) pc.filter(x => x.t === 'q').forEach(x => { vocRe.lastIndex = 0; let v; while ((v = vocRe.exec(x.s.replace(/^[“"‘«*_]+/, '')))){ const n = canonOf(v[1]); if (n !== sp) addressee = n; } });
+      const vm = narr.match(verbRe);
+      if (vm){ const v = vm[1].toLowerCase(); const hit = MOODS.find(([, re]) => re.test(v)); if (hit) mood = hit[0]; }
+      if (aiTags && aiTags.moods && aiTags.moods[pi] != null) mood = aiTags.moods[pi];
+    } else {
+      carry = null;
+      let ps = null;
+      for (const st of sentencesOf(narr).reverse()){ const r = subjectOf(st); if (typeof r === 'string' && r !== 'Narrator'){ ps = r; break; } }
+      prevNarrName = ps || (mentions.length ? mentions[mentions.length-1] : null);
+    }
+    mentions.forEach(touch);
+    touch(sp);
+    paraSpeaker[pi] = hasQ ? sp : null;
+    const heading = !hasQ && paras[pi].length < 80 && !/[.!?,;:"”’]$/.test(paras[pi]);
+
+    pc.forEach(piece => {
+      if (piece.t === 'n'){
+        const say = piece.s.replace(/^[\s,;:.—–\-¦]+/, '').trim();
+        if (/[\p{L}\p{N}]/u.test(say)){ piece.seg = segs.length; segs.push({type:'n', speaker:'Narrator', say, para:pi, heading}); }
+      } else {
+        let say = (piece.italic ? piece.s.slice(1, -1) : piece.s.replace(/^[“"‘«]|[”"’»]$/g,'')).replace(/[*_]/g, '').trim().replace(/[,;:—–\-]+$/, '.');
+        if (!/[.!?…]$/.test(say)) say += '.';
+        let m = mood;
+        if (!m && piece.italic) m = 'thought';
+        if (!m && /!/.test(say)) m = 'excited';
+        if (/[\p{L}\p{N}]/u.test(say)){ piece.seg = segs.length; segs.push({type:'q', speaker:sp, say, para:pi, mood:m}); }
+      }
+    });
+  });
+
+  const chars = Object.keys(lines).filter(n => n !== 'Narrator');
+  extra.forEach(n => { if (!ignore.has(n) && !chars.includes(n)) chars.push(n); });
+  chars.sort((a,b) => (lines[b]||0) - (lines[a]||0) || a.localeCompare(b));
+  chars.forEach(n => { if (!gender[n]) gender[n] = '?'; });
+  model = {pieces, segs, paraSpeaker, chars, lines, gender};
+}
+
+/* ---------- Natural (Kokoro) voices ---------- */
+const AI_VOICES = [
+  ['af_heart','Heart','American','f'],['af_bella','Bella','American','f'],['af_nicole','Nicole (soft)','American','f'],
+  ['af_aoede','Aoede','American','f'],['af_kore','Kore','American','f'],['af_sarah','Sarah','American','f'],
+  ['af_nova','Nova','American','f'],['af_alloy','Alloy','American','f'],['af_jessica','Jessica','American','f'],
+  ['af_river','River','American','f'],['af_sky','Sky','American','f'],
+  ['am_michael','Michael','American','m'],['am_fenrir','Fenrir','American','m'],['am_puck','Puck','American','m'],
+  ['am_echo','Echo','American','m'],['am_eric','Eric','American','m'],['am_liam','Liam','American','m'],
+  ['am_onyx','Onyx','American','m'],['am_adam','Adam','American','m'],['am_santa','Santa','American','m'],
+  ['bf_emma','Emma','British','f'],['bf_isabella','Isabella','British','f'],['bf_alice','Alice','British','f'],['bf_lily','Lily','British','f'],
+  ['bm_george','George','British','m'],['bm_fable','Fable','British','m'],['bm_lewis','Lewis','British','m'],['bm_daniel','Daniel','British','m']
+];
+const AI_FEMALE_ORDER = ['af_bella','af_nicole','bf_emma','af_aoede','af_kore','af_sarah','bf_isabella','af_nova','af_alloy','af_jessica','af_river','af_sky','bf_alice','bf_lily'];
+const AI_MALE_ORDER = ['am_michael','bm_george','am_fenrir','am_puck','bm_fable','am_echo','am_eric','am_liam','am_onyx','bm_lewis','bm_daniel','am_adam'];
+const aiGender = id => id[1];
+
+// Voice blending: a blended voice is the weighted average of its parent voices' style data.
+// The engine fetches each voice's data by name, so blended names are answered here with the mixed data.
+function installBlending(G){
+  if (G.__hearthBlend) return G.__hearthBlend;
+  const BLENDS = new Map();
+  const BASE = "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/";
+  const realFetch = G.fetch.bind(G);
+  async function voiceBytes(id){
+    const url = BASE + id + ".bin";
+    try { const c = await G.caches.open("kokoro-voices"); const r = await c.match(url); if (r) return new Float32Array(await r.arrayBuffer()); } catch (e) {}
+    const r = await realFetch(url);
+    if (!r.ok) throw new Error("Couldn't download voice " + id);
+    const buf = await r.arrayBuffer();
+    try { const c = await G.caches.open("kokoro-voices"); await c.put(url, new Response(buf.slice(0))); } catch (e) {}
+    return new Float32Array(buf);
+  }
+  async function mix(parts){
+    const arrays = await Promise.all(parts.map(p => voiceBytes(p[0])));
+    const total = parts.reduce((a, p) => a + p[1], 0) || 1;
+    const n = Math.min.apply(null, arrays.map(a => a.length));
+    const out = new Float32Array(n);
+    arrays.forEach((a, k) => { const w = parts[k][1] / total; for (let i = 0; i < n; i++) out[i] += a[i] * w; });
+    return out;
+  }
+  G.fetch = async (input, init) => {
+    const url = typeof input === "string" ? input : (input && input.url) || String(input);
+    const m = url.match(/\/voices\/([ab]_x[0-9a-z]+)\.bin(?:\?.*)?$/);
+    if (m && BLENDS.has(m[1])){
+      const data = await mix(BLENDS.get(m[1]));
+      return new Response(data.buffer, {status: 200, headers: {"Content-Type": "application/octet-stream"}});
+    }
+    return realFetch(input, init);
+  };
+  function registerBlend(tts, id, parts){
+    BLENDS.set(id, parts);
+    // Let the engine accept the new name.
+    try { const vs = tts.voices; if (vs && !Object.prototype.hasOwnProperty.call(vs, id)) vs[id] = Object.assign({}, vs[parts[0][0]] || {}, {name: id}); } catch (e) {}
+    if (!tts.__blendPatched && typeof tts._validate_voice === "function"){
+      const orig = tts._validate_voice.bind(tts);
+      tts._validate_voice = v => BLENDS.has(v) ? v.charAt(0) : orig(v);
+      tts.__blendPatched = true;
+    }
+  }
+  return (G.__hearthBlend = {registerBlend, mix});
+}
+const WORKER_SRC = `
+import { KokoroTTS } from "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.0/+esm";
+const { registerBlend } = (${installBlending.toString()})(self);
+let tts = null, q = [], busy = false;
+async function pump(){
+  if (busy || !tts) return;
+  busy = true;
+  while (q.length){
+    const m = q.shift();
+    try {
+      if (m.blend) registerBlend(tts, m.voice, m.blend);
+      const out = await tts.generate(m.text, { voice: m.voice, speed: m.speed });
+      const a = out.audio;
+      self.postMessage({ type: "audio", id: m.id, audio: a, rate: out.sampling_rate }, [a.buffer]);
+    } catch (err) {
+      self.postMessage({ type: "fail", id: m.id, message: String((err && err.message) || err) });
+    }
+  }
+  busy = false;
+}
+self.onmessage = async (e) => {
+  const m = e.data;
+  if (m.type === "load") {
+    try {
+      tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-v1.0-ONNX", {
+        dtype: m.dtype, device: m.device,
+        progress_callback: (p) => self.postMessage({ type: "progress", p: { status: p.status, file: p.file, loaded: p.loaded, total: p.total } })
+      });
+      self.postMessage({ type: "ready" });
+      pump();
+    } catch (err) {
+      self.postMessage({ type: "loadfail", message: String((err && err.message) || err) });
+    }
+  } else if (m.type === "gen") {
+    q.push(m); pump();
+  } else if (m.type === "clear") {
+    const ids = q.map(x => x.id); q = [];
+    self.postMessage({ type: "dropped", ids });
+  }
+};`;
+
+let worker = null, aiReady = false, aiFailed = false, readyWaiters = [], pend = new Map(), nextId = 1, aiFiles = {};
+let ctx = null, curSource = null;
+let units = [], firstUnit = [], uIdx = 0;
+const cache = new Map();
+
+function setModel(msg, frac, fail){
+  $('#modelMsg').textContent = msg;
+  $('#modelBar').style.width = Math.round((frac||0)*100) + '%';
+  $('#modelBox').classList.toggle('fail', !!fail);
+}
+let lastErr = '';
+function modelFail(msg){
+  aiFailed = true; aiReady = false;
+  setModel(msg + ' You can still use Device voices.', 0, true);
+  notice(esc(msg) + ' Switch to Device voices for now, or reload the page to try again.');
+  if (playing && engine === 'ai') pause();
+}
+const KOKORO_URL = 'https://cdn.jsdelivr.net/npm/kokoro-js@1.2.0/+esm';
+// Runs the same engine on the page itself, for browsers that won't start a background worker from a local file.
+function makeInlineEngine(){
+  let dead = false, tts = null, q = [], busy = false;
+  const blending = installBlending(window);
+  const eng = { onmessage:null, onerror:null, terminate(){ dead = true; q = []; } };
+  const emit = d => { if (!dead && eng.onmessage) eng.onmessage({data:d}); };
+  async function pump(){
+    if (busy || !tts) return;
+    busy = true;
+    while (q.length && !dead){
+      const m = q.shift();
+      try {
+        if (m.blend) blending.registerBlend(tts, m.voice, m.blend);
+        const out = await tts.generate(m.text, {voice:m.voice, speed:m.speed});
+        emit({type:'audio', id:m.id, audio:out.audio, rate:out.sampling_rate});
+      } catch(err){ emit({type:'fail', id:m.id, message:String((err && err.message) || err)}); }
+    }
+    busy = false;
+  }
+  eng.postMessage = m => {
+    if (m.type === 'load'){
+      (async () => {
+        try {
+          const mod = await import(KOKORO_URL);
+          tts = await mod.KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX', {
+            dtype:m.dtype, device:m.device,
+            progress_callback: p => emit({type:'progress', p:{status:p.status, file:p.file, loaded:p.loaded, total:p.total}})
+          });
+          emit({type:'ready'}); pump();
+        } catch(err){ emit({type:'loadfail', message:String((err && err.message) || err)}); }
+      })();
+    } else if (m.type === 'gen'){ q.push(m); pump(); }
+    else if (m.type === 'clear'){ const ids = q.map(x => x.id); q = []; setTimeout(() => emit({type:'dropped', ids}), 0); }
+  };
+  return eng;
+}
+function startModel(mode){
+  mode = mode || 'worker';
+  if (worker){ try { worker.terminate(); } catch(e){} pend.forEach(p => p.reject('dropped')); pend.clear(); cache.clear(); }
+  aiReady = false; aiFailed = false; aiFiles = {};
+  setModel(mode === 'worker' ? 'Downloading natural voices… The first time takes a minute or two.' : 'Starting natural voices another way…', 0);
+  const fallback = why => {
+    lastErr = why || 'unknown error';
+    if (mode === 'worker'){ console.warn('Background voice engine failed, retrying on the page:', lastErr); startModel('inline'); }
+    else if ($('#devSel').value !== 'wasm'){
+      // The graphics card option didn't work here: use the standard engine instead.
+      console.warn('Falling back to the standard voice engine:', lastErr);
+      $('#devSel').value = 'wasm'; store.set('aiDevice', 'wasm'); startModel();
+    }
+    else modelFail('The natural voices didn’t load (' + lastErr + ').');
+  };
+  try {
+    worker = mode === 'worker'
+      ? new Worker(URL.createObjectURL(new Blob([WORKER_SRC], {type:'text/javascript'})), {type:'module'})
+      : makeInlineEngine();
+  } catch(e){ fallback(e.message || String(e)); return; }
+  const me = worker;
+  worker.onerror = e => { if (worker !== me) return; if (e && e.preventDefault) e.preventDefault(); fallback((e && e.message) || 'the background engine could not load'); };
+  worker.onmessage = e => {
+    if (worker !== me) return;
+    const m = e.data;
+    if (m.type === 'progress'){
+      if (m.p.file && m.p.total) aiFiles[m.p.file] = {l: m.p.loaded || 0, t: m.p.total};
+      const vals = Object.values(aiFiles);
+      const t = vals.reduce((a,b) => a + b.t, 0), l = vals.reduce((a,b) => a + b.l, 0);
+      if (t > 1e6) setModel(`Downloading natural voices… ${Math.round(l/t*100)}% of ${Math.round(t/1e6)} MB`, l/t);
+    } else if (m.type === 'ready'){
+      // Some graphics cards load the voices but then produce silence or noise, so test one line first.
+      setModel('Checking that the voices make sound…', 1);
+      soundCheck(me).then(() => {
+        if (worker !== me) return;
+        aiReady = true; lastErr = ''; store.set('aiOK', true); $('#dlVoices').hidden = true;
+        setModel('Natural voices are ready.', 1);
+        notice('');
+        readyWaiters.splice(0).forEach(f => f());
+        updateUI();
+      }).catch(err => { if (worker === me) engineBroken(err && err.message || String(err)); });
+    } else if (m.type === 'loadfail'){
+      fallback(m.message);
+    } else if (m.type === 'audio' || m.type === 'fail'){
+      const p = pend.get(m.id); if (!p) return;
+      pend.delete(m.id);
+      m.type === 'audio' ? p.resolve(m) : p.reject(new Error(m.message));
+    } else if (m.type === 'dropped'){
+      m.ids.forEach(id => { const p = pend.get(id); if (p){ pend.delete(id); p.reject('dropped'); } });
+    }
+  };
+  const dev = $('#devSel').value;
+  worker.postMessage({type:'load', device: dev === 'webgpu' ? 'webgpu' : 'wasm', dtype: dev === 'wasm' ? 'q8' : 'fp32'});
+}
+// True when audio from the voice engine is real sound: not empty, not silent, no broken values.
+function validAudio(a, rate){
+  if (!a || a.length < (rate || 24000) * 0.15) return false;
+  let peak = 0;
+  const step = Math.max(1, Math.floor(a.length / 20000));
+  for (let i = 0; i < a.length; i += step){ const x = a[i]; if (!Number.isFinite(x)) return false; const ax = Math.abs(x); if (ax > peak) peak = ax; }
+  return peak > 0.005 && peak < 50;
+}
+function soundCheck(eng){
+  return new Promise((resolve, reject) => {
+    const id = nextId++;
+    const timer = setTimeout(() => { pend.delete(id); reject(new Error('the voice engine took too long to answer')); }, 120000);
+    pend.set(id, {
+      resolve: m => { clearTimeout(timer); validAudio(m.audio, m.rate) ? resolve() : reject(new Error('the voice engine produced no sound')); },
+      reject: e => { clearTimeout(timer); reject(e === 'dropped' ? new Error('the sound check was interrupted') : e); }
+    });
+    eng.postMessage({type:'gen', id, text:'Hello. This is a quick sound check.', voice:'af_heart', speed:1});
+  });
+}
+// The current engine can't make sound: drop to the standard one, or report it.
+function engineBroken(why){
+  lastErr = why;
+  console.warn('Voice engine problem:', why);
+  const was = playing; if (playing) pause();
+  if ($('#devSel').value !== 'wasm'){
+    $('#devSel').value = 'wasm'; store.set('aiDevice', 'wasm');
+    notice('Your graphics card couldn’t run the voices properly (' + esc(why) + '), so Hearthtale switched to the standard voice engine. It’s downloading now. Press Play when it says the voices are ready.');
+    startModel();
+  } else {
+    modelFail('The natural voices aren’t working on this computer (' + why + ').');
+  }
+  return was;
+}
+const whenReady = () => aiReady ? Promise.resolve() : new Promise(r => readyWaiters.push(r));
+let blendBroken = false;
+function genRaw(t, voice, spd, blend){
+  return whenReady().then(() => new Promise((resolve, reject) => {
+    const id = nextId++;
+    pend.set(id, {resolve, reject});
+    worker.postMessage({type:'gen', id, text:t, voice, speed:spd, blend: blend || undefined});
+  }));
+}
+// Blended voices are made on the fly; if that ever fails, the main parent voice reads instead.
+async function gen(t, voice, spd){
+  const parts = blendParts(voice);
+  if (!parts) return genRaw(t, voice, spd);
+  if (blendBroken) return genRaw(t, parts[0][0], spd);
+  try { return await genRaw(t, voice, spd, parts); }
+  catch(e){
+    if (e === 'dropped') throw e;
+    blendBroken = true;
+    console.warn('Voice blending failed, using the main voice instead:', e && e.message);
+    notice('Custom and original voices couldn’t be blended on this computer, so each one is using its main voice for now.');
+    return genRaw(t, parts[0][0], spd);
+  }
+}
+let master = null;
+function ensureCtx(){
+  if (!ctx){
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // A gentle compressor keeps quiet and loud lines at a comfortable, even level.
+    master = ctx.createDynamicsCompressor();
+    master.threshold.value = -20; master.knee.value = 12; master.ratio.value = 3;
+    master.attack.value = 0.004; master.release.value = 0.25;
+    master.connect(ctx.destination);
+  }
+  return ctx;
+}
+// How each kind of line is delivered: pace and loudness.
+const MOOD_FX = { whisper:{s:0.97, g:0.72}, shout:{s:1.02, g:1.18}, sad:{s:0.95, g:0.9}, bright:{s:1.02, g:1.03}, excited:{s:1.02, g:1.08}, heading:{s:0.96, g:1.05}, thought:{s:0.98, g:0.85}, '':{s:1, g:1} };
+const fxOf = seg => MOOD_FX[seg.heading ? 'heading' : (seg.mood || '')] || MOOD_FX[''];
+// Pause before unit i, in seconds: short between sentences, longer between speakers and paragraphs.
+function gapBefore(i){
+  if (i <= 0 || !units[i]) return 0;
+  const u = units[i], p = units[i-1];
+  if (!u.first) return 0.12;
+  const a = model.segs[p.seg], b = model.segs[u.seg];
+  if (a.para !== b.para) return (a.heading || b.heading) ? 0.95 : 0.5;
+  return 0.22;
+}
+// Trim the silence the model leaves at each end, level the loudness, and soften the edges.
+function toBuffer(m, gain){
+  const a = m.audio, th = 0.006;
+  let s0 = 0, s1 = a.length - 1;
+  while (s0 < a.length && Math.abs(a[s0]) < th) s0++;
+  while (s1 > s0 && Math.abs(a[s1]) < th) s1--;
+  const pad = Math.round(m.rate * 0.04);
+  s0 = Math.max(0, s0 - pad); s1 = Math.min(a.length - 1, s1 + pad);
+  const seg = a.subarray(s0, s1 + 1);
+  let sum = 0, peak = 0;
+  for (let i = 0; i < seg.length; i++){ const x = seg[i]; sum += x * x; const ax = Math.abs(x); if (ax > peak) peak = ax; }
+  const rms = Math.sqrt(sum / Math.max(1, seg.length));
+  let k = (rms > 1e-4 ? 0.075 / rms : 1) * (gain || 1);
+  if (peak * k > 0.97) k = 0.97 / Math.max(peak, 1e-6);
+  const out = new Float32Array(Math.max(1, seg.length)), fade = Math.min(Math.round(m.rate * 0.008), Math.floor(seg.length / 2));
+  for (let i = 0; i < seg.length; i++){
+    let f = 1;
+    if (i < fade) f = i / fade; else if (i > seg.length - 1 - fade) f = (seg.length - 1 - i) / fade;
+    out[i] = seg[i] * k * f;
+  }
+  const b = ensureCtx().createBuffer(1, out.length, m.rate); b.copyToChannel(out, 0); return b;
+}
+
+function aiProfile(name){ return castAI[name === 'Narrator' ? '__narrator' : name] || {voice:'af_heart', rate:1, pitch:1, fx:''}; }
+function sayable(t){
+  return t.replace(/[’‘]/g, "'").replace(/[“”«»]/g, '"').replace(/\s*[—–]\s*/g, ', ').replace(/…/g, '...')
+    .replace(/[*_~#|¦\[\]{}<>]/g, ' ').replace(/,\s*,/g, ',').replace(/\s+/g, ' ').trim();
+}
+function unitSpeed(i){ const u = units[i], seg = model.segs[u.seg], p = aiProfile(seg.speaker); return Math.max(0.5, Math.min(2, p.rate * speed * fxOf(seg).s)); }
+function unitKey(i){ const u = units[i], seg = model.segs[u.seg], p = aiProfile(seg.speaker); return `${p.voice}|${unitSpeed(i).toFixed(2)}|${p.pitch || 1}|${p.fx || ''}|${fxOf(seg).g}|${u.text}`; }
+function getAudio(i){
+  const key = unitKey(i);
+  const c = cache.get(i);
+  if (c && c.key === key) return c.promise;
+  const u = units[i], seg = model.segs[u.seg], p = aiProfile(seg.speaker);
+  const entry = {key, done:false};
+  entry.promise = renderVoice(u.text, Object.assign({}, p, {speedNow: unitSpeed(i)}), fxOf(seg).g).then(buf => { entry.done = true; return {buf, key}; });
+  entry.promise.catch(() => { if (cache.get(i) === entry) cache.delete(i); });
+  cache.set(i, entry);
+  return entry.promise;
+}
+function clearQueue(){
+  if (worker) worker.postMessage({type:'clear'});
+  for (const [i, e] of cache) if (!e.done) cache.delete(i);
+}
+function prefetch(i){ for (let j = i; j < Math.min(units.length, i + 5); j++) getAudio(j).catch(() => {}); }
+function stopAudio(){ if (curSource){ try { curSource.onended = null; curSource.stop(); } catch(e){} curSource = null; } }
+function playBuffer(buf){
+  return new Promise(res => {
+    const s = ctx.createBufferSource(); s.buffer = buf; s.connect(master || ctx.destination);
+    s.onended = () => { if (curSource === s) curSource = null; res(); };
+    curSource = s; s.start();
+  });
+}
+
+function buildUnits(){
+  units = []; firstUnit = [];
+  model.segs.forEach((s, i) => { firstUnit[i] = units.length; chunks(s.say).forEach((t, k) => units.push({seg:i, text:t, first:k === 0})); });
+  cache.clear();
+}
+
+let busyMsg = '';
+async function playAI(){
+  const my = ++token;
+  let fails = 0, playedAny = false;
+  while (playing && my === token){
+    if (uIdx >= units.length){ playing = false; cur = Math.max(0, model.segs.length - 1); busyMsg = ''; updateUI(); if (playedAny) onFinished(); return; }
+    cur = units[uIdx].seg;
+    const c = cache.get(uIdx);
+    busyMsg = (c && c.done) ? '' : (aiReady ? 'Preparing voice…' : 'Waiting for voices to download…');
+    updateUI(true);
+    prefetch(uIdx);
+    let res;
+    try { res = await getAudio(uIdx); }
+    catch(e){
+      if (my !== token) return;
+      if (e === 'dropped') continue;
+      const why = (e && e.message) || String(e);
+      console.warn('Line ' + (uIdx + 1) + ' could not be read:', why);
+      // One odd line can be skipped. Two in a row means the voices aren't working, so stop instead of racing ahead.
+      if (++fails >= 2){ busyMsg = ''; engineBroken(why); return; }
+      cache.delete(uIdx); uIdx++; continue;
+    }
+    fails = 0;
+    if (my !== token || !playing) return;
+    if (res.key !== unitKey(uIdx)) continue;
+    busyMsg = ''; updateUI();
+    await playBuffer(res.buf);
+    playedAny = true;
+    if (my !== token) return;
+    for (const k of cache.keys()) if (k < uIdx - 2) cache.delete(k);
+    uIdx++;
+    if (units[uIdx]) await sleep(gapBefore(uIdx) * 1000 / speed);
+  }
+}
+
+/* ---------- Device voices (built into the browser) ---------- */
+const FEM = /female|samantha|victoria|karen|moira|tessa|fiona|zira|susan|hazel|aria|jenny|\bava\b|allison|serena|\bkate\b|kathy|vicki|veena|joanna|salli|kimberly|\bivy\b|emma|\bamy\b|olivia|libby|sonia|natasha|michelle|nicky|zoe|monica|paulina|amelie|\banna\b|alice|ellen|sara|melina|catherine|clara|jessa|nora|sabina|matilda|isha|noelle|joelle|stephanie|martha|siri female|female/i;
+const MALE = /\bmale\b|daniel|\balex\b|fred|david|\bmark\b|george|\bguy\b|ryan|\btom\b|aaron|arthur|rishi|matthew|joey|justin|brian|eric|christopher|roger|thomas|oliver|ralph|albert|bruce|junior|\blee\b|gordon|reed|rocko|grandpa|eddy|james|william|liam|andrew|davis|tony|evan|nathan|arthur|oliver|gordon|rishi|siri male/i;
+const lang = (navigator.language || 'en').slice(0,2).toLowerCase();
+const vGender = v => FEM.test(v.name) ? 'f' : MALE.test(v.name) ? 'm' : '?';
+const NOVELTY = /^(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Deranged|Good News|Hysterical|Jester|Organ|Pipe Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox)\b/i;
+const ROBOTIC = /^(Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley|Fred|Ralph|Junior|Kathy)\b/i;
+const quality = v => { const t = v.name + ' ' + (v.voiceURI || ''); return /premium|natural|neural|online/i.test(t) ? 4 : /enhanced/i.test(t) ? 3 : /google/i.test(t) ? 2 : (ROBOTIC.test(v.name) || /eloquence/i.test(t)) ? 0 : 1; };
+const getVoice = uri => voices.find(v => v.voiceURI === uri) || null;
+function pool(){
+  const ok = voices.filter(v => !NOVELTY.test(v.name));
+  const same = ok.filter(v => (v.lang||'').toLowerCase().startsWith(lang));
+  return (same.length ? same : ok).slice().sort((a,b) => quality(b) - quality(a) || a.name.localeCompare(b.name));
+}
+function loadVoices(){ voices = (synth ? synth.getVoices() : []).filter(v => !NOVELTY.test(v.name)); }
+
+/* ---------- Voice library: natural voice actors, used as they are (no pitch changes or effects) ---------- */
+// AI voices, clearest first. [id, name, gender, accent, ages they suit, clarity 1-5, description]
+const ACTORS = [
+  ['af_heart','Heart','f','American',['adult'],5,'Warm, rich and very clear. A natural narrator.'],
+  ['af_bella','Bella','f','American',['teen','adult'],5,'Bright, expressive young woman.'],
+  ['bf_emma','Emma','f','British',['adult'],4,'Crisp, clear British woman.'],
+  ['af_nicole','Nicole','f','American',['adult'],4,'Soft and intimate, close to the ear.'],
+  ['bm_george','George','m','British',['adult','elder'],4,'Deep, mature British man. A classic narrator.'],
+  ['am_michael','Michael','m','American',['adult'],4,'Steady, friendly American man.'],
+  ['am_fenrir','Fenrir','m','American',['adult'],4,'Strong, deeper American man.'],
+  ['am_puck','Puck','m','American',['child','teen','adult'],4,'Youthful, lively and playful.'],
+  ['bm_fable','Fable','m','British',['teen','adult'],4,'Expressive younger British man.'],
+  ['af_aoede','Aoede','f','American',['adult','elder'],3,'Calm, mature woman.'],
+  ['af_kore','Kore','f','American',['adult'],3,'Confident and direct.'],
+  ['af_sarah','Sarah','f','American',['adult'],3,'Friendly, everyday woman.'],
+  ['bf_isabella','Isabella','f','British',['adult'],3,'Poised, refined British woman.'],
+  ['af_nova','Nova','f','American',['child','teen'],3,'Young and quick.'],
+  ['af_alloy','Alloy','f','American',['adult'],3,'Even, professional tone.'],
+  ['bm_lewis','Lewis','m','British',['adult','elder'],2,'Low, older British man.'],
+  ['am_eric','Eric','m','American',['adult'],2,'Casual, easygoing man.'],
+  ['am_liam','Liam','m','American',['teen','adult'],2,'Younger, laid-back man.']
+].map(a => ({id:a[0], name:a[1], g:a[2], accent:a[3], ages:a[4], q:a[5], desc:a[6], v:a[0]}));
+// Blended voices: new voices made by mixing natural ones.
+function recipeId(parts){
+  const sorted = parts.slice().sort((a, b) => b[1] - a[1]);
+  const key = sorted.map(p => p[0] + ':' + Math.round(p[1])).join('|');
+  let h = 5381; for (let i = 0; i < key.length; i++) h = ((h * 33) ^ key.charCodeAt(i)) >>> 0;
+  return sorted[0][0].charAt(0) + '_x' + h.toString(36);
+}
+function makeBlendActor(name, parts, desc, kind){
+  const sorted = parts.filter(p => p[1] > 0 && ACTORS.some(a => a.id === p[0])).sort((a, b) => b[1] - a[1]);
+  if (!sorted.length) return null;
+  const total = sorted.reduce((t, p) => t + p[1], 0);
+  const par = sorted.map(p => [ACTORS.find(a => a.id === p[0]), p[1] / total]);
+  const fW = par.reduce((t, [a, w]) => t + (a.g === 'f' ? w : 0), 0);
+  const accents = [...new Set(par.map(([a]) => a.accent))];
+  const mixText = par.map(([a, w]) => `${Math.round(w * 100)}% ${a.name}`).join(', ');
+  return {id: recipeId(sorted), name, g: fW >= 0.5 ? 'f' : 'm', accent: accents.length === 1 ? accents[0] : 'Transatlantic',
+    ages: [...new Set(par.flatMap(([a]) => a.ages))], q: Math.max(1, Math.min(5, Math.round(par.reduce((t, [a, w]) => t + a.q * w, 0)))),
+    desc: desc || `A blend of ${mixText}.`, mix: mixText, parts: sorted, kind, v: recipeId(sorted)};
+}
+// Hearthtale's own voices: each one mixes two clear natural voices into a new person.
+const ORIGINALS = [
+  ['Rowan','Warm and steady, with a soft transatlantic lilt.',[['af_heart',60],['bf_emma',40]]],
+  ['Juniper','Gentle and bright, close to the ear.',[['af_bella',50],['af_nicole',50]]],
+  ['Maren','Mature, calm and kind.',[['af_aoede',55],['af_heart',45]]],
+  ['Ivy','Young, quick and curious.',[['af_nova',60],['af_bella',40]]],
+  ['Clara','Refined and crisp, very British.',[['bf_emma',50],['bf_isabella',50]]],
+  ['Sloane','Confident, friendly and direct.',[['af_kore',60],['af_sarah',40]]],
+  ['Ellis','Warm, grounded transatlantic man.',[['am_michael',50],['bm_george',50]]],
+  ['Dorian','Expressive, polished British man.',[['bm_fable',60],['bm_george',40]]],
+  ['Brooks','Deep, strong and reassuring.',[['am_fenrir',55],['am_michael',45]]],
+  ['Finn','Youthful and eager.',[['am_puck',60],['am_michael',40]]],
+  ['Hale','Older British man, low and thoughtful.',[['bm_george',50],['bm_lewis',50]]],
+  ['Wes','Easygoing, with a bit of grit.',[['am_fenrir',50],['am_puck',50]]]
+].map(([n, d, parts]) => makeBlendActor(n, parts, d, 'original'));
+let customBlends = store.get('customBlends', []);
+const blendActors = () => ORIGINALS.concat(customBlends.map(c => makeBlendActor(c.name, c.parts, '', 'custom')).filter(Boolean));
+const actorsAI = () => ACTORS.concat(blendActors());
+function blendParts(id){ if (!/^[ab]_x/.test(id || '')) return null; const a = actorsAI().find(x => x.id === id); return a ? a.parts : null; }
+const SAMPLE_LINE = 'Gather close. This is where the story begins, on a cold night, with a knock at the door.';
+let favVoices = new Set(store.get('favVoices', []));
+const roleLabel = key => key === '__narrator' ? 'Narrator' : key;
+const clampN = (x, a, b) => Math.max(a, Math.min(b, x));
+const actorById = id => actorsAI().find(a => a.id === id) || null;
+
+// The device's own voices, as library entries. Only clear, human-sounding ones are offered when there are any.
+const ACCENTS = {US:'American', GB:'British', AU:'Australian', IE:'Irish', ZA:'South African', IN:'Indian', NZ:'New Zealand', CA:'Canadian', SC:'Scottish'};
+function devQualityLabel(v){ const q = quality(v); return q >= 4 ? 'Premium' : q === 3 ? 'Enhanced' : q === 0 ? 'Basic' : 'Standard'; }
+function devActors(){
+  const p = pool();
+  const good = p.filter(v => quality(v) >= 2);
+  const list = (good.length >= 2 ? good : p).filter(v => quality(v) > 0 || p.every(x => quality(x) === 0));
+  return list.map(v => {
+    const reg = ((v.lang || '').split(/[-_]/)[1] || '').toUpperCase();
+    const g = vGender(v);
+    const nm = v.name.replace(/\s*\((?:Premium|Enhanced|Natural|Online)[^)]*\)/ig, '').replace(/^Microsoft\s+|^Google\s+/i, '').replace(/\s+Online.*$/i, '').replace(/\s*-\s*English.*$/i, '').trim();
+    return {id:v.voiceURI, name:nm || v.name, g, accent: ACCENTS[reg] || (v.lang || ''), ages:['adult'], q: quality(v) + 1, label: devQualityLabel(v),
+      desc: `${devQualityLabel(v)} voice${ACCENTS[reg] ? ', ' + ACCENTS[reg] + ' English' : ''}.`, uri:v.voiceURI};
+  });
+}
+const actorsNow = () => engine === 'ai' ? actorsAI() : devActors();
+const hasGoodDeviceVoices = () => pool().some(v => quality(v) >= 3);
+
+// How old a character is: from the AI's reading, or from words in their name.
+function ageOf(key){
+  if (aiTags && aiTags.ages && aiTags.ages[key]) return aiTags.ages[key];
+  const known = store.get(aiCastKey(), []).find(k => k.name === key);
+  if (known && known.age) return known.age;
+  const n = key.toLowerCase();
+  if (/\b(girl|boy|child|kid|little|son|daughter|baby|toddler)\b/.test(n)) return 'child';
+  if (/\b(teen|youth|young|lad|lass)\b/.test(n)) return 'teen';
+  if (/\b(old|elder|ancient|grand\w*|granny|nana|crone|sage)\b/.test(n)) return 'elder';
+  return 'adult';
+}
+// Pick a voice for each role: right gender, suits their age, clearest voices for the narrator and biggest parts,
+// and a different voice for every character until the library runs out.
+function bestActor(list, want, used, rank){
+  let best = null, bestScore = -1e9;
+  list.forEach(a => {
+    let s = 0;
+    if (want.g === 'f' || want.g === 'm') s += a.g === want.g ? 40 : a.g === '?' ? 5 : -60;
+    if (a.ages.includes(want.age)) s += 8; else if (want.age === 'child' && a.ages.includes('teen')) s += 4;
+    s += a.q * (rank < 4 ? 6 : 2);
+    s -= (used[a.id] || 0) * 30;
+    if (want.accent && a.accent === want.accent) s += 3;
+    if (s > bestScore){ bestScore = s; best = a; }
+  });
+  return best;
+}
+function assignCast(table, list, isDev){
+  if (!list.length) return;
+  const roles = ['__narrator', ...model.chars];
+  const used = {};
+  const valid = c => c && list.some(a => a.id === (isDev ? c.voiceURI : c.voice));
+  // With no preference from the story, the narrator takes the gender fewer characters need, so voices go further.
+  const fCount = model.chars.filter(c => model.gender[c] === 'f').length, mCount = model.chars.filter(c => model.gender[c] === 'm').length;
+  const narrG = (aiTags && aiTags.narratorGender) || (mCount > fCount ? 'f' : fCount > mCount ? 'm' : 'f');
+  const genderOf = r => r === '__narrator' ? narrG : (model.gender[r] || '?');
+  // Keep your own picks, and earlier automatic picks whose details haven't changed.
+  const keep = r => { const c = table[r]; return valid(c) && (!c.auto || (c.g === genderOf(r) && c.age === (r === '__narrator' ? 'adult' : ageOf(r)))); };
+  roles.forEach(r => { if (keep(r)){ const id = isDev ? table[r].voiceURI : table[r].voice; used[id] = (used[id] || 0) + 1; } });
+  roles.forEach((r, i) => {
+    if (keep(r)) return;
+    const want = {g: genderOf(r), age: r === '__narrator' ? 'adult' : ageOf(r)};
+    const a = bestActor(list, want, used, r === '__narrator' ? 0 : i);
+    if (!a) return;
+    used[a.id] = (used[a.id] || 0) + 1;
+    table[r] = isDev ? {voiceURI:a.id, pitch:1, rate:1, auto:true, g:want.g, age:want.age} : {voice:a.id, pitch:1, rate:1, fx:'', auto:true, g:want.g, age:want.age};
+  });
+}
+function saveCast(){ store.set('castAI3', castAI); store.set('castDev3', castDev); }
+function ensureCast(){
+  assignCast(castAI, actorsAI(), false);
+  if (voices.length) assignCast(castDev, devActors(), true);
+  saveCast();
+}
+function fillDevVoices(){ if (model){ assignCast(castDev, devActors(), true); saveCast(); } }
+function chooseActor(key, id){
+  if (engine === 'ai') castAI[key] = {voice:id, pitch:1, rate:(castAI[key] && castAI[key].rate) || 1, fx:'', auto:false};
+  else castDev[key] = {voiceURI:id, pitch:1, rate:(castDev[key] && castDev[key].rate) || 1, auto:false};
+  saveCast();
+}
+
+/* Pitch shifting and effects for AI voices */
+// Shift pitch without changing length: the voice is generated faster or slower, then resampled.
+function resample(a, factor){
+  if (Math.abs(factor - 1) < 0.005) return a;
+  const n = Math.max(1, Math.floor(a.length / factor)), out = new Float32Array(n);
+  for (let i = 0; i < n; i++){ const x = i * factor, j = x | 0, f = x - j; out[i] = (a[j] || 0) * (1 - f) + (a[j + 1] || 0) * f; }
+  return out;
+}
+const impulses = {};
+function impulse(ctx, kind){
+  const key = kind + ctx.sampleRate;
+  if (impulses[key]) return impulses[key];
+  const secs = kind === 'cave' ? 2.4 : 1.4, decay = kind === 'cave' ? 2.2 : 3.2;
+  const n = Math.round(ctx.sampleRate * secs), b = ctx.createBuffer(2, n, ctx.sampleRate);
+  for (let c = 0; c < 2; c++){ const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, decay); }
+  return impulses[key] = b;
+}
+async function applyFx(buf, fx){
+  if (!fx) return buf;
+  const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext; if (!OAC) return buf;
+  const sr = buf.sampleRate, tail = fx === 'cave' ? 1.6 : fx === 'hall' ? 1.0 : 0.02;
+  const oc = new OAC(1, buf.length + Math.round(sr * tail), sr);
+  const src = oc.createBufferSource(); src.buffer = buf;
+  let node = src;
+  const add = (type, freq, gain, q) => { const f = oc.createBiquadFilter(); f.type = type; f.frequency.value = freq; if (gain != null) f.gain.value = gain; if (q != null) f.Q.value = q; node.connect(f); node = f; };
+  if (fx === 'warm'){ add('lowshelf', 220, 3.5); add('highshelf', 6500, -2.5); }
+  else if (fx === 'bright'){ add('highshelf', 4000, 3.5); add('lowshelf', 180, -2); }
+  else if (fx === 'radio'){
+    add('highpass', 420, null, 0.8); add('lowpass', 3300, null, 0.8); add('peaking', 1600, 6, 1.1);
+    const ws = oc.createWaveShaper(), curve = new Float32Array(1024);
+    for (let i = 0; i < 1024; i++){ const x = i / 511.5 - 1; curve[i] = Math.tanh(x * 2.2) / Math.tanh(2.2); }
+    ws.curve = curve; node.connect(ws); node = ws;
+  } else if (fx === 'hall' || fx === 'cave'){ add('lowshelf', 160, fx === 'cave' ? 3 : 1.5); }
+  if (fx === 'hall' || fx === 'cave'){
+    const conv = oc.createConvolver(); conv.buffer = impulse(oc, fx);
+    const wet = oc.createGain(); wet.gain.value = fx === 'cave' ? 0.32 : 0.2;
+    const dry = oc.createGain(); dry.gain.value = 0.88;
+    node.connect(dry); dry.connect(oc.destination); node.connect(conv); conv.connect(wet); wet.connect(oc.destination);
+  } else node.connect(oc.destination);
+  src.start();
+  const r = await oc.startRendering();
+  // Level it again so effects don't make a voice louder or quieter than the rest.
+  const d = r.getChannelData(0); let peak = 0; for (let i = 0; i < d.length; i++){ const a = Math.abs(d[i]); if (a > peak) peak = a; }
+  if (peak > 0.97){ const k = 0.97 / peak; for (let i = 0; i < d.length; i++) d[i] *= k; }
+  return r;
+}
+async function renderVoice(text, prof, gain){
+  const pitch = clampN(prof.pitch || 1, 0.7, 1.35);
+  const spd = clampN((prof.speedNow || prof.rate || 1) / pitch, 0.5, 2);
+  const m = await gen(sayable(text), prof.voice, +spd.toFixed(2));
+  if (!validAudio(m.audio, m.rate)) throw new Error('the voice engine produced no sound');
+  const buf = toBuffer({audio: resample(m.audio, pitch), rate: m.rate}, gain);
+  return applyFx(buf, prof.fx || '');
+}
+
+function chunks(s){
+  const parts = s.match(/[^.!?…]+[.!?…]+["”’)]*\s*|[^.!?…]+$/g) || [s];
+  const out = []; let buf = '';
+  for (const p of parts){ if ((buf + p).length > 220 && buf){ out.push(buf); buf = p; } else buf += p; }
+  if (buf.trim()) out.push(buf);
+  return out.flatMap(c => c.length > 300 ? (c.match(/.{1,280}(?:\s|$)/g) || [c]) : [c]).map(c => c.trim()).filter(Boolean);
+}
+function utter(t, prof, fx){
+  const u = new SpeechSynthesisUtterance(t);
+  const v = getVoice(prof && prof.voiceURI);
+  if (v){ u.voice = v; u.lang = v.lang; }
+  u.pitch = prof ? prof.pitch : 1;
+  u.rate = Math.min(3, (prof ? prof.rate : 1) * speed * (fx ? fx.s : 1));
+  if (fx) u.volume = Math.min(1, 0.85 * fx.g);
+  return u;
+}
+function speakDev(){
+  if (!playing) return;
+  if (cur >= model.segs.length){ playing = false; cur = Math.max(0, model.segs.length - 1); updateUI(); onFinished(); return; }
+  const seg = model.segs[cur];
+  const cs = chunks(seg.say);
+  const prof = castDev[seg.speaker === 'Narrator' ? '__narrator' : seg.speaker];
+  const my = ++token; let ci = 0;
+  updateUI(true);
+  const go = () => {
+    if (my !== token || !playing) return;
+    if (ci >= cs.length){ cur++; speakDev(); return; }
+    const u = utter(cs[ci++], prof, fxOf(seg));
+    u.onend = go;
+    u.onerror = e => { if (my !== token || e.error === 'interrupted' || e.error === 'canceled') return; go(); };
+    synth.speak(u);
+  };
+  go();
+}
+
+/* ---------- Rendering ---------- */
+const colorOf = name => name === 'Narrator' ? 'var(--narr)' : `var(--c${(model.chars.indexOf(name) % 7) + 1})`;
+const pronounLabel = g => g==='f' ? 'she' : g==='m' ? 'he' : '';
+
+function renderText(){
+  const opts = sel => [...model.chars, 'Narrator'].map(n => `<option value="${esc(n)}"${n===sel?' selected':''}>${esc(n)}</option>`).join('') + '<option value="__new__">+ New character…</option>';
+  const fmt = t => esc(t).replace(/\*([^*\n]+?)\*/g, '<em>$1</em>').replace(/(?<![\p{L}\p{N}])_([^_\n]+?)_(?![\p{L}\p{N}])/gu, '<em>$1</em>');
+  $('#manuscript').innerHTML = model.pieces.map((pc, pi) => {
+    const sp = model.paraSpeaker[pi];
+    let html = sp ? `<span class="who-wrap"><select class="who" data-para="${pi}" aria-label="Who says this line">${opts(sp)}</select></span>` : '';
+    html += pc.map(x => x.seg != null ? `<span class="seg ${x.t}" data-seg="${x.seg}">${fmt(x.s)}</span>` : fmt(x.s)).join('');
+    return `<p${sp ? ` style="--rc:${colorOf(sp)}"` : ''}>${html}</p>`;
+  }).join('') || '<p style="color:var(--muted)">No text yet. Choose Edit text to paste a story.</p>';
+  $('#sampleNote').hidden = !usingSample;
+  markNow();
+}
+
+function devVoiceOptions(sel){
+  const p = pool(), others = voices.filter(v => !p.includes(v));
+  const o = v => `<option value="${esc(v.voiceURI)}"${v.voiceURI===sel?' selected':''}>${esc(v.name)} (${esc(v.lang)})</option>`;
+  return p.map(o).join('') + (others.length ? `<optgroup label="Other languages">${others.map(o).join('')}</optgroup>` : '');
+}
+function aiVoiceOptions(sel){
+  const groups = [['American','f','American women'],['American','m','American men'],['British','f','British women'],['British','m','British men']];
+  return groups.map(([acc, g, label]) => `<optgroup label="${label}">` +
+    AI_VOICES.filter(v => v[2] === acc && v[3] === g).map(v => `<option value="${v[0]}"${v[0]===sel?' selected':''}>${esc(v[1])}</option>`).join('') + '</optgroup>').join('');
+}
+
+function rebuild(){
+  exitScreenOff();
+  loadAiTags();
+  parse(); buildUnits(); ensureCast();
+  renderText(); renderCast();
+  if (cur >= model.segs.length) cur = 0;
+  uIdx = firstUnit[cur] || 0;
+  updateUI();
+}
+
+/* ---------- Transport ---------- */
+let playing = false, cur = 0, token = 0, exporting = false;
+
+let speechUnlocked = false, wakeLock = null;
+// iPhones only allow speech and sound to start from a tap, so prime both right away.
+function unlockAudio(){
+  if (synth && !speechUnlocked){ try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; synth.speak(u); } catch(e){} speechUnlocked = true; }
+}
+async function keepAwake(on){
+  try {
+    if (on && !wakeLock && 'wakeLock' in navigator){ wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); }
+    else if (!on && wakeLock){ const w = wakeLock; wakeLock = null; await w.release(); }
+  } catch(e){ wakeLock = null; }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && playing) keepAwake(true); });
+function play(){
+  if (bg){ bgAudio.play().catch(() => notice('Tap Play again to start.')); return; }
+  if (preparing) return;
+  if (!model.segs.length || exporting) return;
+  unlockAudio();
+  token++; stopAudio(); if (synth) synth.cancel();
+  keepAwake(true);
+  if (engine === 'ai'){
+    if (!worker){ startNatural(); if (needsDownloadOk()){ notice('Download the natural voices first. You’ll find the button in the Cast tab, or switch to Device voices.'); return; } }
+    if (aiFailed){ notice('Natural voices aren’t available right now' + (lastErr ? ' (' + esc(lastErr) + ')' : '') + '. Switch to Device voices, or reload the page to try again.'); return; }
+    ensureCtx().resume();
+    clearQueue();
+    if (!units[uIdx] || units[uIdx].seg !== cur) uIdx = firstUnit[cur];
+    playing = true; updateUI();
+    playAI();
+  } else {
+    if (!synth) return;
+    synth.resume(); playing = true; updateUI();
+    setTimeout(() => { if (playing) speakDev(); }, 60);
+  }
+}
+function pause(){ if (bg){ bgAudio.pause(); return; } playing = false; token++; stopAudio(); if (synth) synth.cancel(); busyMsg = ''; keepAwake(false); updateUI(); }
+function jump(i){
+  if (bg){ const t = Math.max(0, Math.min(model.segs.length - 1, i)); if (firstUnit[t] >= bg.from){ bgSeekUnit(firstUnit[t]); return; } exitScreenOff(); }
+  cur = Math.max(0, Math.min(model.segs.length - 1, i));
+  uIdx = firstUnit[cur] || 0;
+  if (playing) play(); else updateUI(true);
+}
+
+function markNow(scroll){
+  document.querySelectorAll('.seg.now').forEach(e => e.classList.remove('now'));
+  const el = document.querySelector(`.seg[data-seg="${cur}"]`);
+  if (!el) return;
+  if (playing || cur > 0) el.classList.add('now');
+  if (scroll && !$('#readView').hidden){
+    const r = el.getBoundingClientRect();
+    if (r.top < 80 || r.bottom > innerHeight - 150){
+      el.scrollIntoView({block:'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+    }
+  }
+}
+
+function updateUI(scroll){
+  const n = model.segs.length, seg = model.segs[cur];
+  $('#playIcon').innerHTML = playing ? '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+  $('#bPlay').setAttribute('aria-label', playing ? 'Pause' : 'Play');
+  $('#bPlay').disabled = !n || exporting || (engine === 'device' && !synth);
+  const who = seg ? seg.speaker : 'Ready';
+  $('#whoNow').textContent = playing || cur > 0 ? who : 'Ready to read';
+  $('#nowInfo').style.setProperty('--rc', seg ? colorOf(who) : 'var(--ink)');
+  $('#posNow').innerHTML = (n ? `Line ${cur + 1} of ${n}` : 'No text loaded') + (busyMsg ? ` · <span class="busy">${esc(busyMsg)}</span>` : '');
+  $('#prog').style.width = n ? `${((cur + (playing ? 0.5 : 0)) / n) * 100}%` : '0';
+  $('#bSave').disabled = exporting || !n || aiFailed;
+  $('#bScreenOff').hidden = engine !== 'ai';
+  $('#bScreenOff').disabled = exporting || !n || aiFailed;
+  markNow(scroll);
+}
+
+/* ---------- Save as audio file ---------- */
+function encodeWav(samples, sr){
+  const buf = new ArrayBuffer(44 + samples.length * 2), v = new DataView(buf);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0,'RIFF'); v.setUint32(4, 36 + samples.length * 2, true); w(8,'WAVE'); w(12,'fmt ');
+  v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true); v.setUint32(24,sr,true);
+  v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true); w(36,'data'); v.setUint32(40, samples.length * 2, true);
+  for (let i = 0, o = 44; i < samples.length; i++, o += 2){ const s = Math.max(-1, Math.min(1, samples[i])); v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7FFF, true); }
+  return new Blob([buf], {type:'audio/wav'});
+}
+// Make one continuous recording of the chapter from unit `from` on. Returns the samples and where each line starts.
+async function renderUnits(from, onProgress){
+  const parts = [], starts = []; let sr = 24000, total = 0;
+  for (let i = from; i < units.length; i++){
+    if (onProgress) onProgress((i - from) / Math.max(1, units.length - from));
+    let res = null;
+    for (let tries = 0; !res && tries < 3; tries++){ try { res = await getAudio(i); } catch(e){ if (e !== 'dropped' && tries === 2) throw e; } }
+    sr = res.buf.sampleRate;
+    if (i > from){ const gap = new Float32Array(Math.round(sr * gapBefore(i) / speed)); parts.push(gap); total += gap.length; }
+    starts.push(total);
+    const d = res.buf.getChannelData(0); parts.push(d); total += d.length;
+    if (i + 1 < units.length) prefetch(i + 1);
+  }
+  const all = new Float32Array(total); let off = 0;
+  parts.forEach(p => { all.set(p, off); off += p.length; });
+  return {samples: all, sr, starts};
+}
+const trackName = () => ((book ? book.title + (book.chapters.length > 1 ? ' - ' + book.chapters[chapIdx].title : '') : text.trim().split(/\s+/).slice(0, 5).join(' ')).replace(/[^\w\s'-]/g, '').trim() || 'story');
+async function saveAudio(){
+  if (exporting || !units.length) return;
+  pause(); exitScreenOff(); exporting = true; ensureCtx(); updateUI();
+  const btn = $('#bSave'), label = btn.textContent;
+  try {
+    const r = await renderUnits(0, f => { btn.textContent = `Making audio ${Math.round(f * 100)}%`; });
+    const name = trackName() + '.wav';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(encodeWav(r.samples, r.sr)); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    notice(`Saved “${esc(name)}” (${Math.round(r.samples.length / r.sr / 60 * 10) / 10} minutes) to your downloads.`);
+  } catch(e){
+    notice('The audio file couldn’t be made: ' + esc(e.message || String(e)));
+  } finally {
+    exporting = false; btn.textContent = label; updateUI();
+  }
+}
+
+/* ---------- Screen-off listening ---------- */
+// Phones stop page audio when the screen locks, but a prepared audio track keeps playing,
+// with play, pause and skip on the lock screen.
+const bgAudio = new Audio(); bgAudio.preload = 'auto'; bgAudio.setAttribute('playsinline', '');
+let bg = null, preparing = false;
+const SILENCE = URL.createObjectURL(encodeWav(new Float32Array(2400), 24000));
+function bgUnitAt(t){
+  const pos = t * bg.sr; let lo = 0, hi = bg.starts.length - 1;
+  while (lo < hi){ const mid = (lo + hi + 1) >> 1; if (bg.starts[mid] <= pos) lo = mid; else hi = mid - 1; }
+  return bg.from + lo;
+}
+function bgSeekUnit(u){
+  if (!bg) return;
+  const k = Math.max(0, Math.min(bg.starts.length - 1, u - bg.from));
+  bgAudio.currentTime = bg.starts[k] / bg.sr + 0.001;
+  uIdx = bg.from + k; cur = units[uIdx].seg; updateUI(true);
+}
+function exitScreenOff(){
+  if (!bg && !preparing) return;
+  preparing = false;
+  bgAudio.pause();
+  if (bg){ URL.revokeObjectURL(bg.url); bg = null; }
+  bgAudio.removeAttribute('src'); try { bgAudio.load(); } catch(e){}
+  if ('mediaSession' in navigator){ try { navigator.mediaSession.metadata = null; } catch(e){} }
+  $('#bScreenOff').classList.remove('on'); $('#bScreenOff').textContent = 'Screen-off mode'; $('#bScreenOff').title = 'Keeps reading with the screen locked';
+  playing = false; updateUI();
+}
+async function startScreenOff(){
+  if (preparing) { exitScreenOff(); return; }
+  if (bg){ exitScreenOff(); return; }
+  if (engine !== 'ai' || !units.length) return;
+  if (!worker){ startNatural(); if (needsDownloadOk()){ notice('Download the natural voices first. You’ll find the button in the Cast tab.'); return; } }
+  // Unlock the audio player now, while we have your tap, so it can start by itself when the track is ready.
+  bgAudio.src = SILENCE; bgAudio.play().catch(() => {});
+  pause(); ensureCtx();
+  preparing = true;
+  const btn = $('#bScreenOff'); btn.classList.add('on');
+  const from = units[uIdx] ? uIdx : 0;
+  notice('Preparing the rest of this chapter as one track. Keep the screen on until it starts playing. Then you can lock your phone.');
+  try {
+    const r = await renderUnits(from, f => { if (preparing){ btn.textContent = `Preparing ${Math.round(f * 100)}%`; btn.title = 'Tap to cancel'; } });
+    if (!preparing) return;
+    preparing = false;
+    const url = URL.createObjectURL(encodeWav(r.samples, r.sr));
+    bg = {url, sr: r.sr, starts: r.starts, from, speed};
+    bgAudio.src = url; bgAudio.playbackRate = 1;
+    btn.textContent = 'Screen-off on'; btn.title = 'Tap to stop screen-off mode';
+    if ('mediaSession' in navigator){
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({title: book && book.chapters.length > 1 ? book.chapters[chapIdx].title : trackName(), artist: 'Hearthtale', album: book ? book.title : '', artwork: [{src:'icon-512.png', sizes:'512x512', type:'image/png'}]});
+        navigator.mediaSession.setActionHandler('play', () => bgAudio.play());
+        navigator.mediaSession.setActionHandler('pause', () => bgAudio.pause());
+        navigator.mediaSession.setActionHandler('seekbackward', () => { bgAudio.currentTime = Math.max(0, bgAudio.currentTime - 15); });
+        navigator.mediaSession.setActionHandler('seekforward', () => { bgAudio.currentTime = Math.min(bgAudio.duration || 0, bgAudio.currentTime + 15); });
+        navigator.mediaSession.setActionHandler('previoustrack', () => bgSeekUnit(uIdx - 1));
+        navigator.mediaSession.setActionHandler('nexttrack', () => bgSeekUnit(uIdx + 1));
+      } catch(e){}
+    }
+    try { await bgAudio.play(); notice('Playing. You can lock your phone now.'); }
+    catch(e){ notice('Ready. Tap Play to listen, then lock your phone if you like.'); }
+  } catch(e){
+    preparing = false; exitScreenOff();
+    notice('This chapter couldn’t be prepared: ' + esc(e.message || String(e)));
+  }
+}
+bgAudio.addEventListener('play', () => { if (bg){ playing = true; keepAwake(false); updateUI(); } });
+bgAudio.addEventListener('pause', () => { if (bg){ playing = false; updateUI(); } });
+bgAudio.addEventListener('timeupdate', () => {
+  if (!bg) return;
+  const u = bgUnitAt(bgAudio.currentTime);
+  if (u !== uIdx){ uIdx = u; cur = units[u].seg; updateUI(!document.hidden); }
+});
+bgAudio.addEventListener('ended', () => {
+  if (!bg) return;
+  playing = false; updateUI();
+  if (book && chapIdx < book.chapters.length - 1) notice('End of chapter. Open the next chapter and tap Screen-off mode again to keep going.');
+});
+
+/* ---------- Opening files (PDF, EPUB, Word, web page, text) ---------- */
+const LIBS = {
+  jszip: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+  pdf: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+  pdfWorker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+};
+const scriptCache = {};
+function loadScript(src){
+  if (!scriptCache[src]) scriptCache[src] = new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = src;
+    s.onload = res;
+    s.onerror = () => { delete scriptCache[src]; rej(new Error('couldn’t download a helper for this file type. Check your internet connection')); };
+    document.head.appendChild(s);
+  });
+  return scriptCache[src];
+}
+let book = store.get('book', null);
+let chapIdx = store.get('chapIdx', 0);
+function saveBook(){
+  try { if (book) localStorage.setItem('fireside:book', JSON.stringify(book)); else localStorage.removeItem('fireside:book'); }
+  catch(e){ try { localStorage.removeItem('fireside:book'); } catch(_){} }
+}
+const readAs = (file, kind) => new Promise((res, rej) => {
+  const r = new FileReader();
+  r.onload = () => res(r.result); r.onerror = () => rej(new Error('the file couldn’t be read'));
+  kind === 'text' ? r.readAsText(file) : r.readAsArrayBuffer(file);
+});
+const parseXML = s => new DOMParser().parseFromString(s, 'application/xml');
+
+// Turn an HTML/XHTML document into plain paragraphs.
+function blocksText(root){
+  if (!root) return '';
+  root.querySelectorAll('script,style,nav,aside.footnote,sup').forEach(e => e.remove());
+  // Keep italics as *markers* so italic speech and thoughts can be found later.
+  const IT = 'i,em,[style*="italic"],[class*="ital"],[class*="Ital"],[class*="emph"],[class*="thought"]';
+  [...root.querySelectorAll(IT)].filter(el => !(el.parentElement && el.parentElement.closest(IT))).forEach(el => {
+    if (!el.textContent.trim() || el.querySelector('p,div,li,h1,h2,h3')) return;
+    const d = el.ownerDocument;
+    el.insertBefore(d.createTextNode('*'), el.firstChild); el.appendChild(d.createTextNode('*'));
+  });
+  let els = [...root.querySelectorAll('p,h1,h2,h3,h4,h5,h6,li,pre,blockquote')]
+    .filter(el => !el.parentElement || !el.parentElement.closest('p,li,blockquote'));
+  let paras = els.map(el => el.textContent.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const all = (root.textContent || '').replace(/\s+/g, ' ').trim();
+  if (paras.join(' ').length < all.length * 0.5){
+    paras = [...root.querySelectorAll('div')].filter(d => !d.querySelector('div,p'))
+      .map(d => d.textContent.replace(/\s+/g, ' ').trim()).filter(Boolean);
+    if (paras.join(' ').length < all.length * 0.5) paras = (root.innerText || root.textContent || '').split(/\n\s*\n|\n/).map(s => s.trim()).filter(Boolean);
+  }
+  return paras.map(cleanItalics).join('\n\n');
+}
+const cleanItalics = p => p.replace(/\*\s*\*/g, ' ').replace(/\s{2,}/g, ' ').trim();
+
+// PDF: rebuild paragraphs from the positions of the text on each page.
+async function getPdfLib(){
+  await loadScript(LIBS.pdf);
+  const lib = window.pdfjsLib;
+  if (!lib.GlobalWorkerOptions.workerSrc){
+    try {
+      const t = await (await fetch(LIBS.pdfWorker)).text();
+      lib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([t], {type:'text/javascript'}));
+    } catch(e){
+      // Can't fetch the worker (e.g. on the hosted page): run the PDF reader on the page itself.
+      await loadScript(LIBS.pdfWorker);
+      lib.GlobalWorkerOptions.workerSrc = LIBS.pdfWorker;
+    }
+  }
+  return lib;
+}
+function pdfPageParas(items, isItalic){
+  const lines = []; let line = null;
+  for (const it of items){
+    if (!('str' in it)) continue;
+    const x = it.transform[4], y = it.transform[5], h = Math.abs(it.transform[3]) || it.height || 10;
+    if (!line || Math.abs(y - line.y) > h * 0.5){ line = {x, y, h, t:''}; lines.push(line); }
+    line.t += (isItalic && it.str.trim() && isItalic(it.fontName)) ? '*' + it.str + '*' : it.str;
+  }
+  const kept = lines.map(l => ({...l, t: l.t.replace(/\s+/g, ' ').trim()})).filter(l => l.t && !/^\d{1,4}$/.test(l.t));
+  if (!kept.length) return [];
+  const gaps = kept.slice(1).map((l, i) => kept[i].y - l.y).filter(g => g > 0).sort((a,b) => a - b);
+  const gap = gaps.length ? gaps[Math.floor(gaps.length / 2)] : 14;
+  const minX = Math.min(...kept.map(l => l.x));
+  const maxLen = Math.max(...kept.map(l => l.t.length));
+  const paras = []; let p = '';
+  kept.forEach((l, i) => {
+    const prev = kept[i-1];
+    const newPara = !prev
+      || (prev.y - l.y) > gap * 1.45
+      || l.x > minX + l.h * 0.9
+      || Math.abs(l.h - prev.h) > prev.h * 0.2
+      || (prev.t.length < maxLen * 0.6 && /[.!?:"”’)]$/.test(prev.t));
+    if (newPara && p){ paras.push(p); p = ''; }
+    if (!p) p = l.t;
+    else if (/[a-z]-$/.test(p) && /^[a-z]/.test(l.t)) p = p.slice(0, -1) + l.t;
+    else p += ' ' + l.t;
+  });
+  if (p) paras.push(p);
+  return paras;
+}
+async function readPdf(file){
+  const lib = await getPdfLib();
+  const doc = await lib.getDocument({data: await readAs(file, 'buffer')}).promise;
+  let paras = [];
+  for (let i = 1; i <= doc.numPages; i++){
+    notice(`Opening “${esc(file.name)}”… reading page ${i} of ${doc.numPages}`);
+    const page = await doc.getPage(i);
+    const tc = await page.getTextContent();
+    let isItalic = null;
+    try {
+      await page.getOperatorList();
+      const memo = {};
+      isItalic = id => {
+        if (id in memo) return memo[id];
+        let f = null; try { f = page.commonObjs.get(id); } catch(e){}
+        return memo[id] = !!(f && (f.italic || /italic|oblique|-it$|,it/i.test(f.name || '')));
+      };
+    } catch(e){}
+    const pp = pdfPageParas(tc.items, isItalic).map(cleanItalics);
+    // A paragraph that runs over a page break gets joined back together.
+    if (paras.length && pp.length && !/[.!?"”’:)]$/.test(paras[paras.length-1]) && /^[a-z"“]/.test(pp[0])) paras[paras.length-1] += ' ' + pp.shift();
+    paras = paras.concat(pp);
+  }
+  if (!paras.join('').trim()) throw new Error('this PDF is made of scanned pictures, so it has no text to read. Try a PDF with selectable text');
+  return {title: file.name.replace(/\.[^.]+$/, ''), chapters: splitChapters(paras.join('\n\n'))};
+}
+
+// EPUB: follow the book's reading order and keep each section as a chapter.
+function resolvePath(base, href){
+  const out = [];
+  (base + href).split('/').forEach(seg => { if (seg === '..') out.pop(); else if (seg && seg !== '.') out.push(seg); });
+  return decodeURIComponent(out.join('/'));
+}
+async function readEpub(file){
+  await loadScript(LIBS.jszip);
+  const zip = await window.JSZip.loadAsync(await readAs(file, 'buffer'));
+  const enc = zip.file('META-INF/encryption.xml');
+  if (enc && /EncryptedData/.test(await enc.async('string')) && /\.x?html?/i.test(await enc.async('string')))
+    throw new Error('this eBook is copy-protected (DRM), so its text can’t be read. DRM-free EPUBs work');
+  const container = zip.file('META-INF/container.xml');
+  if (!container) throw new Error('this doesn’t look like a valid EPUB file');
+  const opfPath = parseXML(await container.async('string')).querySelector('rootfile').getAttribute('full-path');
+  const opf = parseXML(await zip.file(opfPath).async('string'));
+  const base = opfPath.includes('/') ? opfPath.replace(/[^/]+$/, '') : '';
+  const manifest = {};
+  opf.querySelectorAll('manifest > item').forEach(it => manifest[it.getAttribute('id')] = it.getAttribute('href'));
+  const titleEl = opf.getElementsByTagNameNS('*', 'title')[0];
+  const chapters = [];
+  const refs = [...opf.querySelectorAll('spine > itemref')];
+  for (let i = 0; i < refs.length; i++){
+    notice(`Opening “${esc(file.name)}”… section ${i + 1} of ${refs.length}`);
+    const href = manifest[refs[i].getAttribute('idref')]; if (!href) continue;
+    const entry = zip.file(resolvePath(base, href.split('#')[0])); if (!entry) continue;
+    const src = await entry.async('string');
+    let doc = new DOMParser().parseFromString(src, 'application/xhtml+xml');
+    if (doc.querySelector('parsererror')) doc = new DOMParser().parseFromString(src, 'text/html');
+    const root = doc.body || doc.documentElement;
+    const h = root.querySelector('h1,h2,h3');
+    const t = blocksText(root);
+    if (t.replace(/\s/g, '').length < 40) continue;
+    const firstLine = (h ? h.textContent : t.split('\n')[0]).trim();
+    if (SKIP_RE.test(firstLine) && t.length < 6000) continue;
+    chapters.push({title: (h && h.textContent.replace(/\s+/g, ' ').trim().slice(0, 70)) || `Section ${chapters.length + 1}`, text: t});
+  }
+  if (!chapters.length) throw new Error('no readable text was found in this eBook');
+  // Fold tiny sections (a "Part One" title page) into the next one, and split sections that hold several chapters.
+  const merged = [];
+  chapters.forEach(c => {
+    const prev = merged[merged.length - 1];
+    if (prev && prev.text.length < 600){ prev.text += '\n\n' + c.text; if (/^Section \d+$/.test(prev.title)) prev.title = c.title; return; }
+    merged.push({...c});
+  });
+  const out = [];
+  merged.forEach(c => {
+    const parts = splitChapters(c.text);
+    if (parts.length > 1 && parts.every(p => /^Part \d+$/.test(p.title))) parts.forEach((p, k) => out.push({title: `${c.title} (part ${k + 1})`, text: p.text}));
+    else if (parts.length > 1) parts.forEach(p => out.push(p));
+    else out.push(c);
+  });
+  return {title: titleEl ? titleEl.textContent.trim() : file.name.replace(/\.[^.]+$/, ''), chapters: out};
+}
+
+// Word: take each paragraph's text from the document.
+async function readDocx(file){
+  await loadScript(LIBS.jszip);
+  const zip = await window.JSZip.loadAsync(await readAs(file, 'buffer'));
+  const entry = zip.file('word/document.xml');
+  if (!entry) throw new Error('this doesn’t look like a valid Word (.docx) file');
+  const xml = parseXML(await entry.async('string'));
+  const paras = [...xml.getElementsByTagNameNS('*', 'p')].map(p => {
+    let s = '';
+    [...p.getElementsByTagNameNS('*', 'r')].forEach(r => {
+      let t = '';
+      [...r.children].forEach(n => {
+        if (n.localName === 't') t += n.textContent;
+        else if (n.localName === 'tab' || n.localName === 'br') t += ' ';
+      });
+      const rPr = [...r.children].find(n => n.localName === 'rPr');
+      const iEl = rPr && [...rPr.children].find(n => n.localName === 'i');
+      const ital = iEl && !/^(0|false|off)$/i.test(iEl.getAttribute('w:val') || iEl.getAttributeNS('*', 'val') || '');
+      s += ital && t.trim() ? '*' + t + '*' : t;
+    });
+    return cleanItalics(s.replace(/\s+/g, ' '));
+  }).filter(Boolean);
+  return {title: file.name.replace(/\.[^.]+$/, ''), chapters: splitChapters(paras.join('\n\n'))};
+}
+
+// Split long text at chapter headings, or into parts if there are none.
+const NUM_WORDS = 'one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred';
+const HEAD_RE = new RegExp(
+  `^(?:chapter|chap\\.|book|part|volume|act)\\s+(?:[0-9]+|[ivxlcdm]+|(?:${NUM_WORDS})(?:[\\s-](?:${NUM_WORDS}))*|[a-z]+)\\b` +
+  `|^(?:prologue|epilogue|introduction|preface|afterword|interlude|foreword|coda|postscript)\\b` +
+  `|^[0-9]{1,3}\\.?$|^[IVXLC]{1,7}\\.?$` +
+  `|^(?:${NUM_WORDS})(?:[\\s-](?:${NUM_WORDS}))*\\.?$`, 'i');
+const SKIP_RE = /^(contents|table of contents|copyright|also by|other books|praise for|about the author|about the publisher|acknowledg|title page|cover|dedication|newsletter|sign up)/i;
+function isHeading(p){
+  if (p.length > 90 || /[,;]$/.test(p)) return false;
+  if (HEAD_RE.test(p.replace(/^[*_#\s]+|[*_#\s]+$/g, ''))) return true;
+  return false;
+}
+// Find chapters inside any text: "Chapter 12", "CHAPTER TWELVE", "XII", "12", "Prologue"…
+// A list of headings close together (a table of contents) doesn't count.
+function splitChapters(full){
+  const paras = full.replace(/\r\n?/g, '\n').split(/\n\s*\n+/).map(p => p.trim()).filter(Boolean);
+  let heads = paras.map((p, i) => isHeading(p) ? i : -1).filter(i => i >= 0);
+  const sizeAfter = (h, k) => paras.slice(h + 1, heads[k+1] ?? paras.length).join(' ').length;
+  heads = heads.filter((h, k) => sizeAfter(h, k) >= 300);
+  const chapters = [];
+  if (heads.length >= 2){
+    if (heads[0] > 0){
+      const pre = paras.slice(0, heads[0]).join('\n\n');
+      if (pre.length > 400 && !SKIP_RE.test(paras[0])) chapters.push({title:'Opening', text:pre});
+    }
+    heads.forEach((h, k) => {
+      let title = paras[h].replace(/[*_]/g, '').slice(0, 70);
+      const next = paras[h+1];
+      // A short line right after the number is the chapter's name ("12" + "The Long Night").
+      if (next && next.length < 70 && !/[.!?,;:"”’]$/.test(next) && !/[“"‘]/.test(next)) title += ': ' + next.replace(/[*_]/g, '');
+      chapters.push({title, text: paras.slice(h, heads[k+1] ?? paras.length).join('\n\n')});
+    });
+    return chapters;
+  }
+  if (full.length <= 40000) return [{title:'Full text', text: paras.join('\n\n')}];
+  let buf = [], len = 0;
+  paras.forEach(p => { buf.push(p); len += p.length; if (len > 25000 && !/[“"‘]$/.test(p)){ chapters.push({title:`Part ${chapters.length + 1}`, text: buf.join('\n\n')}); buf = []; len = 0; } });
+  if (buf.length) chapters.push({title:`Part ${chapters.length + 1}`, text: buf.join('\n\n')});
+  return chapters;
+}
+
+async function openFile(file){
+  if (!file) return;
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  pause();
+  notice(`Opening “${esc(file.name)}”…`);
+  try {
+    let b;
+    if (ext === 'pdf') b = await readPdf(file);
+    else if (ext === 'epub') b = await readEpub(file);
+    else if (ext === 'docx') b = await readDocx(file);
+    else if (['mobi','azw','azw3','kfx','doc','pages','rtf'].includes(ext))
+      throw new Error(ext === 'doc' || ext === 'pages' || ext === 'rtf'
+        ? 'this file type isn’t supported. Save it as .docx, PDF or .txt and open that instead'
+        : 'Kindle books can’t be opened because they’re copy-protected. EPUB, PDF, Word and text files work');
+    else if (ext === 'html' || ext === 'htm'){
+      const doc = new DOMParser().parseFromString(await readAs(file, 'text'), 'text/html');
+      b = {title: (doc.title || file.name).trim(), chapters: splitChapters(blocksText(doc.body))};
+    } else {
+      b = {title: file.name.replace(/\.[^.]+$/, ''), chapters: splitChapters(await readAs(file, 'text'))};
+    }
+    b.chapters = b.chapters.filter(c => c.text.trim());
+    if (!b.chapters.length) throw new Error('no readable text was found in this file');
+    book = b;
+    saveBook();
+    loadChapter(0, false);
+    const n = book.chapters.length;
+    notice(`Opened “${esc(book.title)}”${n > 1 ? ` with ${n} chapters. Use the chapter list above the text to jump around.` : '.'} Press Play to start.`);
+  } catch(err){
+    notice(`“${esc(file.name)}” couldn’t be opened: ${esc(err.message || String(err))}.`);
+  }
+}
+
+function loadChapter(i, autoplay){
+  if (!book || !book.chapters[i]) return;
+  pause();
+  chapIdx = i; store.set('chapIdx', i);
+  text = book.chapters[i].text; usingSample = false; store.set('text', text);
+  overrides = store.get(ovKey(), {}); cur = 0; uIdx = 0; clearQueue();
+  showView(false);
+  rebuild(); renderChapters();
+  scrollTo(0, 0);
+  maybeAutoAI(true);
+  if (autoplay) setTimeout(play, 400);
+}
+function renderChapters(){
+  const has = !!book;
+  $('#chapBar').hidden = !has;
+  if (!has) return;
+  $('#bookTitle').textContent = book.title;
+  $('#chSel').innerHTML = book.chapters.map((c, i) => `<option value="${i}"${i === chapIdx ? ' selected' : ''}>${esc(c.title)}</option>`).join('');
+  $('#chSel').hidden = book.chapters.length < 2;
+  $('#chPrev').hidden = $('#chNext').hidden = book.chapters.length < 2;
+  $('#chPrev').disabled = chapIdx === 0;
+  $('#chNext').disabled = chapIdx >= book.chapters.length - 1;
+}
+// When a chapter ends, keep going with the next one.
+function onFinished(){
+  if (book && chapIdx < book.chapters.length - 1) loadChapter(chapIdx + 1, true);
+}
+
+/* ---------- Smart speaker detection (Google Gemini, free tier) ---------- */
+const GEM = 'https://generativelanguage.googleapis.com/v1beta';
+let aiKey = store.get('aiKey', ''), aiModel = store.get('aiModel', ''), aiAuto = store.get('aiAuto', true), aiBusy = false, aiModels = [];
+const aiTagKey = () => 'ai:' + ovKey().slice(3);
+const aiCastKey = () => 'aicast:' + (book ? book.title : 'text');
+function loadAiTags(){ aiTags = store.get(aiTagKey(), null); }
+function setAiState(msg, isErr){ const el = $('#aiState'); el.textContent = msg || ''; el.classList.toggle('err', !!isErr); }
+
+async function gemFetch(path, body, signal){
+  let r;
+  try {
+    r = await fetch(GEM + path, {
+      method: body ? 'POST' : 'GET',
+      headers: Object.assign({'x-goog-api-key': aiKey}, body ? {'Content-Type': 'application/json'} : {}),
+      body: body ? JSON.stringify(body) : undefined,
+      signal
+    });
+  } catch(e){
+    const timedOut = e && e.name === 'AbortError';
+    const err = new Error(timedOut ? 'Google took too long to answer.' : 'Couldn’t reach Google. Check your internet connection.');
+    err.status = 0; err.timeout = timedOut; err.raw = timedOut ? 'timed out' : String(e && e.message || e); throw err;
+  }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok){
+    const raw = (j.error && j.error.message) || r.statusText || 'unknown error';
+    let msg = raw;
+    if (r.status === 400 && /api key/i.test(raw) || r.status === 401 || r.status === 403) msg = 'That key didn’t work. Make sure you copied the whole key from Google AI Studio.';
+    else if (r.status === 429) msg = 'The free limit is used up for now. Wait a minute and try again, or try again tomorrow.';
+    else if (r.status >= 500) msg = 'Google’s AI is busy right now. Try again in a minute.';
+    const err = new Error(msg); err.status = r.status; err.raw = raw; throw err;
+  }
+  return j;
+}
+
+// Ask Google which Flash models this key can use, best first.
+async function loadModels(){
+  const j = await gemFetch('/models?pageSize=200');
+  const ms = (j.models || []).filter(m =>
+    (m.supportedGenerationMethods || []).includes('generateContent') && /gemini/i.test(m.name) && /flash/i.test(m.name)
+    && !/(tts|image|live|audio|embedding|vision|robotics|computer|native|transcribe)/i.test(m.name));
+  const ver = m => { const v = m.name.match(/(\d+(?:\.\d+)?)/); return v ? +v[1] : 0; };
+  ms.sort((a,b) => (/lite/i.test(a.name) - /lite/i.test(b.name)) || (/preview|exp/i.test(a.name) - /preview|exp/i.test(b.name)) || (ver(b) - ver(a)));
+  aiModels = ms.map(m => ({id: m.name.replace(/^models\//, ''), label: m.displayName || m.name.replace(/^models\//, '')}));
+  if (!aiModels.length) aiModels = [{id:'gemini-flash-latest', label:'Gemini Flash (latest)'}];
+  if (!aiModel || !aiModels.some(m => m.id === aiModel)){ aiModel = aiModels[0].id; store.set('aiModel', aiModel); }
+  const sel = $('#aiModel');
+  sel.innerHTML = aiModels.map(m => `<option value="${esc(m.id)}"${m.id === aiModel ? ' selected' : ''}>${esc(m.label)}</option>`).join('');
+  $('#aiModelRow').hidden = false;
+  return aiModels;
+}
+
+function aiPrompt(paras, from, to, labels, known){
+  const ctxFrom = Math.max(0, from - 8);
+  const body = paras.slice(ctxFrom, to).map((p, k) => `[${ctxFrom + k}] ${p}`).join('\n\n');
+  return `You are casting an audiobook in which every character has their own voice.
+Below is part of a story, split into numbered paragraphs.
+For each paragraph number in "LABEL THESE", decide who speaks the words in quotation marks (or the italic words between *asterisks*) in that paragraph.
+
+Rules:
+- The speaker is the person saying the words, not the person being spoken to. A name inside the quote is usually the listener.
+- Use the speech tags, actions, pronouns and back-and-forth turn-taking to decide.
+- Give each character one consistent name, the one the story uses most (e.g. "Harry", not sometimes "Harry Potter" or "Mr. Potter").
+- If a speaker is never named, use a short description and keep it the same every time, like "the guard", "the old man", "Nora's mother".
+- If the story is told in first person and the narrator speaks ("I said"), use "Narrator".
+- Italic thoughts belong to the character thinking them.
+- If quoted words are not spoken by anyone (a sign, a title, a note, a word being discussed), use "Narrator".
+- Mood is how the line should be performed. Use one of: neutral, whisper, shout, sad, happy, thought, excited.
+${known.length ? `Characters already met earlier in the book (reuse these names when it's the same person): ${known.map(c => `${c.name} (${c.gender}${c.age ? ', ' + c.age : ''})`).join(', ')}.` : ''}
+
+LABEL THESE: ${labels.join(', ')}
+
+Reply with JSON only, in exactly this shape:
+{"narrator_gender":"female","characters":[{"name":"Mara","gender":"female","age":"adult"},{"name":"the guard","gender":"male","age":"adult"}],"lines":[[12,"Mara","neutral"],[13,"the guard","shout"]]}
+"characters" lists everyone who speaks, with gender "male", "female" or "unknown", and age "child", "teen", "adult" or "elder". "narrator_gender" is "female", "male" or "either": the narrator voice that best suits this story (for a first-person story, the narrator's own gender). "lines" has one entry for every paragraph number in LABEL THESE.
+
+STORY:
+${body}`;
+}
+
+function parseJsonReply(j){
+  const t = ((j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts) || []).map(p => p.text || '').join('');
+  const clean = t.replace(/^```(?:json)?\s*|\s*```$/g, '').trim();
+  try { return JSON.parse(clean); }
+  catch(e){ const a = clean.indexOf('{'), b = clean.lastIndexOf('}'); if (a >= 0 && b > a) return JSON.parse(clean.slice(a, b + 1)); throw new Error('The AI’s answer couldn’t be read. Try again.'); }
+}
+const MOOD_MAP = {neutral:'', whisper:'whisper', shout:'shout', sad:'sad', happy:'bright', thought:'thought', excited:'excited'};
+const tidyName = n => { n = String(n || '').trim().replace(/^["“]|["”]$/g, ''); if (!n) return ''; if (/^narrator$/i.test(n)) return 'Narrator'; return n.charAt(0).toUpperCase() + n.slice(1); };
+
+// Try the chosen model, then every other free Flash model, retrying busy ones with short waits.
+async function askGemini(prompt, onWait){
+  const ids = [aiModel, ...aiModels.map(m => m.id), 'gemini-flash-latest', 'gemini-flash-lite-latest'];
+  const tryModels = [...new Set(ids.filter(Boolean))];
+  let lastErr;
+  for (const id of tryModels){
+    for (let attempt = 0; attempt < 3; attempt++){
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 120000);
+        let j;
+        try {
+          j = await gemFetch(`/models/${encodeURIComponent(id)}:generateContent`, {
+            contents: [{role:'user', parts:[{text: prompt}]}],
+            generationConfig: {temperature: 0.1, responseMimeType: 'application/json'}
+          }, controller.signal);
+        } finally { clearTimeout(timer); }
+        const res = parseJsonReply(j);
+        if (id !== aiModel && aiModels.some(m => m.id === id)){ aiModel = id; store.set('aiModel', id); $('#aiModel').value = id; }
+        return res;
+      } catch(e){
+        lastErr = e;
+        if (e.status === 401 || e.status === 403 || (e.status === 400 && /key/i.test(e.raw || ''))) throw e;
+        const busy = e.status >= 500 || e.status === 0 || e.status === 429 || e.timeout;
+        if (busy && attempt < 2){
+          const wait = (attempt + 1) * 4;
+          if (onWait) onWait(`${labelOf(id)} is busy. Trying again in ${wait} seconds…`);
+          await sleep(wait * 1000);
+          continue;
+        }
+        if (onWait) onWait(`${labelOf(id)} isn’t answering. Trying another model…`);
+        break;
+      }
+    }
+  }
+  const err = new Error('Every Gemini model was busy or unavailable. Try again in a few minutes.' + (lastErr && lastErr.raw ? ` (Google said: ${lastErr.raw.slice(0, 160)})` : ''));
+  throw err;
+}
+const labelOf = id => (aiModels.find(m => m.id === id) || {label: id}).label;
+
+async function runAI(){
+  if (aiBusy) return;
+  if (HOSTED && !claudeSample){ setAiState('Claude isn’t available on this page right now. The built-in detection is being used.', true); return; }
+  if (!HOSTED && !aiKey){ setAiState('Paste your free Gemini key first.', true); $('#aiKey').focus(); return; }
+  const paras = model.pieces.map(pc => pc.map(x => x.s).join(''));
+  const dlg = model.paraSpeaker.map((s, i) => s ? i : -1).filter(i => i >= 0);
+  if (!dlg.length){ setAiState('This chapter has no dialogue to tag.'); return; }
+  const textKey = aiTagKey();
+  aiBusy = true; $('#aiRun').disabled = true;
+  try {
+    if (!HOSTED && !aiModels.length){ setAiState('Connecting to Gemini…'); await loadModels(); }
+    // Very long chapters are sent in parts of about 60,000 characters.
+    const windows = []; let start = 0, size = 0;
+    paras.forEach((p, i) => { size += p.length; if (size > 30000){ windows.push([start, i + 1]); start = i + 1; size = 0; } });
+    if (start < paras.length) windows.push([start, paras.length]);
+    const out = {lines:{}, moods:{}, genders:{}, ages:{}, narratorGender:''};
+    let known = store.get(aiCastKey(), []);
+    for (let w = 0; w < windows.length; w++){
+      const [a, b] = windows[w];
+      const labels = dlg.filter(i => i >= a && i < b);
+      if (!labels.length) continue;
+      setAiState(windows.length > 1 ? `Reading part ${w + 1} of ${windows.length}…` : 'Reading the chapter…');
+      let res;
+      if (HOSTED){
+        setAiState(windows.length > 1 ? `Claude is reading part ${w + 1} of ${windows.length}. This can take a minute…` : 'Claude is reading the chapter. This can take a minute…');
+        try { res = await claudeSample.json(aiPrompt(paras, a, b, labels, known), {modelTier: 'default'}); }
+        catch(e){ throw new Error(claudeErr(e)); }
+      } else {
+        res = await askGemini(aiPrompt(paras, a, b, labels, known), msg => setAiState(msg));
+      }
+      (res.characters || []).forEach(c => {
+        const n = tidyName(c.name); if (!n || n === 'Narrator') return;
+        const g = /^f/i.test(c.gender || '') ? 'f' : /^m/i.test(c.gender || '') ? 'm' : '?';
+        out.genders[n] = g;
+        const age = /^(child|teen|adult|elder)$/i.test(c.age || '') ? String(c.age).toLowerCase() : '';
+        if (age) out.ages[n] = age;
+        const k = known.find(k => k.name === n);
+        if (!k) known.push({name:n, gender: g === 'f' ? 'female' : g === 'm' ? 'male' : 'unknown', age});
+        else if (age && !k.age) k.age = age;
+      });
+      if (!out.narratorGender){ const ng = String(res.narrator_gender || ''); out.narratorGender = /^f/i.test(ng) ? 'f' : /^m/i.test(ng) ? 'm' : ''; }
+      (res.lines || []).forEach(l => {
+        const [pi, who, mood] = Array.isArray(l) ? l : [l.p ?? l.paragraph, l.speaker, l.mood];
+        const n = tidyName(who);
+        if (n && labels.includes(+pi)){ out.lines[+pi] = n; out.moods[+pi] = MOOD_MAP[String(mood || '').toLowerCase()] ?? ''; }
+      });
+    }
+    store.set(aiCastKey(), known.slice(-60));
+    store.set(textKey, out);
+    const tagged = Object.keys(out.lines).length;
+    if (aiTagKey() === textKey){
+      const was = playing, at = cur;
+      pause(); rebuild();
+      cur = Math.min(at, model.segs.length - 1); uIdx = firstUnit[cur] || 0; updateUI();
+      if (was) play();
+    }
+    setAiState(`Tagged ${tagged} of ${dlg.length} lines with ${model.chars.length} characters.`);
+  } catch(e){
+    setAiState(e.message || String(e), true);
+  } finally {
+    aiBusy = false; $('#aiRun').disabled = false;
+  }
+}
+function claudeErr(e){
+  const c = e && e.code;
+  if (c === 'not_granted' || c === 'sampling_disabled' || c === 'capability_disabled' || c === 'not_declared'){ claudeSample = null; return 'Claude wasn’t allowed to read the chapter, so the built-in detection is being used. Reload the page to be asked again.'; }
+  if (c === 'rate_limited') return 'You’ve reached your Claude usage limit for now. Try again later.';
+  if (c === 'session_expired') return 'Sign in to Claude again, then try again.';
+  if (c === 'prompt_too_large') return 'This chapter is too long to send at once.';
+  if (c === 'invalid_json' || c === 'empty_completion') return 'Claude’s answer couldn’t be read. Tap “Tag speakers” to try again.';
+  if (c === 'cancelled') return 'Stopped.';
+  return 'Claude couldn’t finish just now. Tap “Tag speakers” to try again.';
+}
+function maybeAutoAI(fromUser){
+  const ready = HOSTED ? !!claudeSample : !!aiKey;
+  const tagged = !!store.get(aiTagKey(), null);
+  // On the hosted page, only start on your own action (opening a chapter), never by itself on page load.
+  if (aiAuto && ready && !tagged && model.paraSpeaker.some(Boolean) && (!HOSTED || fromUser)) runAI();
+  else if (tagged) setAiState('This chapter’s speakers were tagged by AI.');
+  else if (ready) setAiState('');
+}
+
+$('#aiKey').value = aiKey;
+$('#aiAuto').checked = aiAuto;
+$('#aiKey').addEventListener('change', async () => {
+  aiKey = $('#aiKey').value.trim(); store.set('aiKey', aiKey);
+  aiModels = []; $('#aiModelRow').hidden = true;
+  if (!aiKey){ setAiState(''); return; }
+  setAiState('Checking your key…');
+  try { await loadModels(); setAiState('Key works. Ready to tag speakers.'); maybeAutoAI(); }
+  catch(e){ setAiState(e.message, true); }
+});
+$('#aiModel').addEventListener('change', e => { aiModel = e.target.value; store.set('aiModel', aiModel); });
+$('#aiAuto').addEventListener('change', e => { aiAuto = e.target.checked; store.set('aiAuto', aiAuto); if (aiAuto) maybeAutoAI(); });
+$('#aiRun').addEventListener('click', () => runAI());
+$('#aiClear').addEventListener('click', () => {
+  try { localStorage.removeItem('fireside:' + aiTagKey()); } catch(e){}
+  const was = playing; pause(); rebuild(); if (was) play();
+  setAiState('Using the built-in detection for this chapter.');
+});
+
+/* ---------- Events ---------- */
+$('#bPlay').onclick = () => playing ? pause() : play();
+$('#bStop').onclick = () => { exitScreenOff(); pause(); cur = 0; uIdx = 0; updateUI(true); };
+$('#bPrev').onclick = () => jump(cur - 1);
+$('#bNext').onclick = () => jump(cur + 1);
+$('#bSave').onclick = saveAudio;
+$('#bScreenOff').onclick = startScreenOff;
+$('#speedSel').value = String(speed);
+$('#speedSel').onchange = e => {
+  speed = +e.target.value; store.set('speed', speed);
+  if (bg){ bgAudio.playbackRate = speed / bg.speed; return; }
+  if (playing) play();
+};
+$('#devSel').value = store.get('aiDevice', navigator.gpu ? 'webgpu' : 'wasm');
+$('#devSel').onchange = e => { store.set('aiDevice', e.target.value); pause(); if (needsDownloadOk()) showDownloadPrompt(); else startModel(); };
+
+// On a phone the voices are a big download, so ask first.
+let dlAllowed = false;
+const needsDownloadOk = () => IS_PHONE && !HOSTED && !dlAllowed && !store.get('aiOK', false);
+const dlSize = () => $('#devSel').value === 'wasm' ? 90 : 330;
+function showDownloadPrompt(){
+  setModel(`Natural voices are a one-time download of about ${dlSize()} MB. Use Wi-Fi if you can. After that they work offline.`, 0);
+  $('#dlVoices').textContent = `Download natural voices (${dlSize()} MB)`;
+  $('#dlVoices').hidden = false;
+}
+function startNatural(){ if (needsDownloadOk()) showDownloadPrompt(); else if (!worker) startModel(); }
+$('#dlVoices').onclick = () => { dlAllowed = true; $('#dlVoices').hidden = true; startModel(); };
+document.querySelectorAll('.engine button').forEach(b => b.onclick = () => {
+  if (engine === b.dataset.eng) return;
+  pause(); exitScreenOff(); engine = b.dataset.eng; store.set('engine', engine);
+  if (engine === 'ai') startNatural();
+  if (engine === 'device' && !synth) notice('This browser can’t use device voices. Natural voices still work.');
+  renderCast(); updateUI();
+});
+
+$('#manuscript').addEventListener('click', e => {
+  const s = e.target.closest('.seg'); if (!s) return;
+  if (bg){ const u = firstUnit[+s.dataset.seg]; if (u >= bg.from){ bgSeekUnit(u); bgAudio.play().catch(() => {}); return; } exitScreenOff(); }
+  cur = +s.dataset.seg; uIdx = firstUnit[cur]; play();
+});
+$('#manuscript').addEventListener('change', e => {
+  if (!e.target.classList.contains('who')) return;
+  let v = e.target.value;
+  if (v === '__new__'){
+    // Ask for the name right there in the text.
+    const sel = e.target, para = +sel.dataset.para;
+    const inp = document.createElement('input');
+    inp.className = 'who-new'; inp.placeholder = 'Who says this?'; inp.setAttribute('aria-label', 'Name of the character who says this line');
+    sel.replaceWith(inp); inp.focus();
+    let done = false;
+    const finish = ok => {
+      if (done) return; done = true;
+      const name = ok ? inp.value.trim() : '';
+      if (name){
+        ignore.delete(name); if (!extra.includes(name)) extra.push(name);
+        store.set('ignore', [...ignore]); store.set('extra', extra);
+        overrides[para] = name; store.set(ovKey(), overrides);
+      }
+      const y = scrollY; pause(); rebuild(); scrollTo(0, y);
+    };
+    inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') finish(true); else if (ev.key === 'Escape') finish(false); });
+    inp.addEventListener('blur', () => finish(true));
+    return;
+  }
+  overrides[+e.target.dataset.para] = v;
+  store.set(ovKey(), overrides);
+  const y = scrollY, was = playing; pause(); rebuild(); scrollTo(0, y); if (was) play();
+});
+
+function renderCast(){
+  const ai = engine === 'ai';
+  $('#modelBox').hidden = !ai || HOSTED;
+  $('#bSave').hidden = !ai;
+  $('#voiceTip').hidden = ai || !voices.length || hasGoodDeviceVoices();
+  document.querySelectorAll('.engine button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.eng === engine)));
+  const list = actorsNow();
+  const roles = [['__narrator','Narrator'], ...model.chars.map(c => [c, c])];
+  $('#roles').innerHTML = roles.map(([key, label], ri) => {
+    const isN = key === '__narrator';
+    const n = isN ? model.segs.filter(s => s.speaker === 'Narrator').length : (model.lines[key]||0);
+    const meta = `${n} ${isN ? 'passages' : n===1 ? 'line' : 'lines'}${!isN && pronounLabel(model.gender[key]) ? ' · ' + pronounLabel(model.gender[key]) : ''}`;
+    const id = 'r' + ri;
+    const c = (ai ? castAI[key] : castDev[key]) || {rate:1};
+    const A = list.find(a => a.id === (ai ? c.voice : c.voiceURI));
+    const sharedWith = A ? roles.filter(([k]) => k !== key && ((ai ? castAI[k] && castAI[k].voice : castDev[k] && castDev[k].voiceURI) === A.id)).map(([, l]) => l) : [];
+    const pName = A ? A.name : (voices.length || ai ? 'Choose a voice' : 'Loading voices…');
+    const pDesc = A ? `${A.accent}${A.label ? ' · ' + A.label : ''} · ${A.desc}` : '';
+    return `<div class="role" data-key="${esc(key)}" style="--rc:${colorOf(isN ? 'Narrator' : key)}">
+      <div class="role-head"><span class="dot"></span><strong>${esc(label)}</strong><span class="meta">${meta}</span><span class="sp"></span>
+        <button class="mini" data-act="test">Test</button>${isN || key === 'Someone' ? '' : `<button class="mini" data-act="remove" title="Not a character" aria-label="Remove ${esc(label)}">✕</button>`}</div>
+      <button class="persona" data-act="lib" aria-label="Voice for ${esc(label)}: ${esc(pName)}. Change voice"><span class="p-txt"><span class="p-name">${esc(pName)}</span><span class="p-desc">${esc(pDesc)}</span></span><span class="p-change">Change</span></button>
+      ${sharedWith.length ? `<p class="shared">Same voice as ${esc(sharedWith.slice(0, 2).join(', '))}${sharedWith.length > 2 ? '…' : ''}. ${ai ? '' : 'Download more voices to give everyone their own.'}</p>` : ''}
+      ${isN || key === 'Someone' ? '' : `<label class="same">Same person as
+        <select data-act="merge" aria-label="${esc(label)} is the same person as"><option value="">—</option>${model.chars.filter(c => c !== key).map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></label>`}
+      <div class="sliders one"><label for="${id}r">Pace <input id="${id}r" type="range" min="0.75" max="1.3" step="0.01" value="${c.rate || 1}" data-f="rate"></label></div>
+    </div>`;
+  }).join('');
+}
+
+/* Library sheet */
+let libFor = null, libFilter = 'All', libQuery = '', previewing = null;
+function libChips(){
+  const list = actorsNow();
+  const accents = [...new Set(list.map(a => a.accent))].filter(Boolean);
+  const extra = engine === 'ai' ? ['Originals', ...(customBlends.length ? ['Yours'] : [])] : [];
+  return ['All', 'Favorites', 'Women', 'Men', ...extra, ...(accents.length > 1 ? accents : []), 'Clearest'];
+}
+function openLibrary(key){
+  libFor = key; studio = null; $('#libSearch').hidden = false; $('#libCreate').hidden = engine !== 'ai';
+  $('#libFor').textContent = key ? `Choose a voice for ${roleLabel(key)}.` : 'Preview voices and star your favorites. Pick them from any character’s card.';
+  $('#libNote').hidden = engine === 'ai';
+  $('#lib').hidden = false;
+  document.body.classList.add('sheet-open');
+  if (!libChips().includes(libFilter)) libFilter = 'All';
+  renderLibrary();
+  setTimeout(() => { const cur = $('#libList .lib-card.current'); if (cur) cur.scrollIntoView({block:'center'}); $('#libClose').focus(); }, 30);
+}
+function closeLibrary(){
+  studio = null;
+  $('#lib').hidden = true; document.body.classList.remove('sheet-open');
+  if (synth) synth.cancel(); stopAudio(); previewing = null;
+  const k = libFor; libFor = null;
+  if (k){ const b = document.querySelector(`.role[data-key="${CSS.escape(k)}"] .persona`); if (b) b.focus(); }
+}
+function libMatches(A){
+  const q = libQuery.trim().toLowerCase();
+  if (q && !(A.name + ' ' + A.desc + ' ' + (A.kind === 'original' ? 'original blend ' : A.kind === 'custom' ? 'mine my yours custom blend ' : '') + A.accent + ' ' + (A.g === 'f' ? 'woman female' : A.g === 'm' ? 'man male' : '')).toLowerCase().includes(q)) return false;
+  if (libFilter === 'All') return true;
+  if (libFilter === 'Favorites') return favVoices.has(A.id);
+  if (libFilter === 'Women') return A.g === 'f';
+  if (libFilter === 'Men') return A.g === 'm';
+  if (libFilter === 'Clearest') return A.q >= 4;
+  if (libFilter === 'Originals') return A.kind === 'original';
+  if (libFilter === 'Yours') return A.kind === 'custom';
+  return A.accent === libFilter;
+}
+function renderLibrary(){
+  const ai = engine === 'ai';
+  $('#libChips').innerHTML = libChips().map(c => `<button class="chip" aria-pressed="${c === libFilter}" data-chip="${esc(c)}">${c === 'Favorites' ? '★ ' : ''}${esc(c)}</button>`).join('');
+  const table = ai ? castAI : castDev, field = ai ? 'voice' : 'voiceURI';
+  const curId = libFor && table[libFor] ? table[libFor][field] : null;
+  const usedBy = {};
+  Object.entries(table).forEach(([k, c]) => { if (c && c[field] && (k === '__narrator' || model.chars.includes(k))) (usedBy[c[field]] = usedBy[c[field]] || []).push(roleLabel(k)); });
+  const all = actorsNow();
+  const list = all.filter(libMatches);
+  const stars = q => '●'.repeat(Math.max(1, Math.min(5, q))) + '○'.repeat(5 - Math.max(1, Math.min(5, q)));
+  const card = A => {
+    const tags = [A.g === 'f' ? 'Woman' : A.g === 'm' ? 'Man' : '', A.accent, A.label || '', A.kind === 'original' ? 'Original' : A.kind === 'custom' ? 'Yours' : ''].filter(Boolean);
+    const who = usedBy[A.id] ? `<span class="in-use">Reading ${esc(usedBy[A.id].slice(0, 2).join(', '))}${usedBy[A.id].length > 2 ? '…' : ''}</span>` : '';
+    return `<div class="lib-card${A.id === curId ? ' current' : ''}" data-id="${esc(A.id)}">
+      <div class="lc-top"><strong>${esc(A.name)}</strong><span class="clarity" title="Clarity">${stars(A.q)}</span><button class="star" data-act="fav" aria-pressed="${favVoices.has(A.id)}" aria-label="${favVoices.has(A.id) ? 'Remove from' : 'Add to'} favorites">${favVoices.has(A.id) ? '★' : '☆'}</button></div>
+      <p class="lc-desc">${esc(A.desc)}</p>${A.kind === 'original' ? `<p class="lc-mix">Blend of ${esc(A.mix)}</p>` : ''}
+      <div class="lc-tags">${tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>
+      ${who}
+      <div class="lc-actions"><button class="mini play" data-act="preview" aria-label="Preview ${esc(A.name)}">${previewing === A.id ? '■ Stop' : '▶ Preview'}</button>
+        ${libFor ? `<button class="btn primary use" data-act="use">${A.id === curId ? 'Current voice' : 'Use this voice'}</button>` : ''}
+        ${A.kind === 'custom' ? `<button class="linkish del" data-act="del">Delete</button>` : ''}</div>
+    </div>`;
+  };
+  let html;
+  if (!all.length) html = `<p class="lib-empty">${ai ? 'Voices are still loading.' : 'Your device hasn’t listed its voices yet. Try again in a moment.'}</p>`;
+  else if (!list.length) html = `<p class="lib-empty">${libFilter === 'Favorites' ? 'No favorites yet. Tap ☆ on any voice to keep it here.' : 'No voices match.'}</p>`;
+  else if (libFilter === 'All' && !libQuery.trim()) html = [['Your voices', a => a.kind === 'custom'], ['Women', a => !a.kind && a.g === 'f'], ['Men', a => !a.kind && a.g === 'm'], ['Hearthtale originals', a => a.kind === 'original'], ['Other voices', a => !a.kind && a.g !== 'f' && a.g !== 'm']].map(([t, f]) => { const it = list.filter(f); return it.length ? `<h3 class="lib-group">${t}</h3><div class="lib-grid">${it.map(card).join('')}</div>` : ''; }).join('');
+  else html = `<div class="lib-grid">${list.map(card).join('')}</div>`;
+  $('#libList').innerHTML = html;
+}
+async function playActor(A, text){
+  pause();
+  const line = text || SAMPLE_LINE;
+  if (engine === 'ai'){
+    if (aiFailed) return;
+    ensureCtx().resume();
+    const buf = await renderVoice(line, {voice:A.id, pitch:1, rate:speed, fx:''}, 1);
+    return playBuffer(buf);
+  }
+  if (!synth) return;
+  unlockAudio(); synth.cancel();
+  return new Promise(res => { const u = utter(line, {voiceURI:A.id, pitch:1, rate:1}); u.onend = u.onerror = res; synth.speak(u); });
+}
+$('#libChips').addEventListener('click', e => { const b = e.target.closest('[data-chip]'); if (!b) return; libFilter = b.dataset.chip; studio = null; renderLibrary(); });
+$('#libSearch').addEventListener('input', e => { libQuery = e.target.value; renderLibrary(); });
+$('#libClose').addEventListener('click', closeLibrary);
+$('#lib').addEventListener('click', e => { if (e.target.id === 'lib') closeLibrary(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#lib').hidden) closeLibrary(); });
+$('#libList').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const card = b.closest('.lib-card'); if (!card) return; const A = actorsNow().find(a => a.id === card.dataset.id); if (!A) return;
+  if (b.dataset.act === 'fav'){
+    favVoices.has(A.id) ? favVoices.delete(A.id) : favVoices.add(A.id);
+    store.set('favVoices', [...favVoices]); renderLibrary();
+  } else if (b.dataset.act === 'preview'){
+    if (previewing === A.id){ previewing = null; if (synth) synth.cancel(); stopAudio(); renderLibrary(); return; }
+    previewing = A.id; renderLibrary();
+    const own = libFor && model.segs.find(s => s.speaker === roleLabel(libFor));
+    try { await playActor(A, own ? chunks(own.say)[0] : null); } catch(err){}
+    if (previewing === A.id){ previewing = null; if (!$('#lib').hidden) renderLibrary(); }
+  } else if (b.dataset.act === 'del'){
+    if (b.dataset.confirm !== '1'){ b.dataset.confirm = '1'; b.textContent = 'Tap again to delete'; return; }
+    customBlends = customBlends.filter(c => recipeId(c.parts) !== A.id); store.set('customBlends', customBlends);
+    favVoices.delete(A.id); store.set('favVoices', [...favVoices]);
+    Object.keys(castAI).forEach(k => { if (castAI[k] && castAI[k].voice === A.id) delete castAI[k]; });
+    ensureCast(); renderLibrary(); renderCast();
+  } else if (b.dataset.act === 'use' && libFor){
+    chooseActor(libFor, A.id);
+    const was = playing; pause(); renderCast(); closeLibrary(); if (was) play();
+  }
+});
+$('#openLib').addEventListener('click', () => openLibrary(null));
+
+/* Voice Studio: mix up to three natural voices into a new one */
+const NAME_IDEAS = {f:['Adele','Bryony','Celeste','Delia','Esme','Freya','Greta','Hazel','Imogen','Lark','Mae','Nell','Opal','Piper','Quinn','Rosalind','Sable','Tess','Vera','Wren'],
+  m:['Abbott','Beck','Cyrus','Desmond','Emrys','Gideon','Harlan','Ira','Jasper','Knox','Leland','Milo','Nash','Otis','Pierce','Reid','Silas','Tobin','Vaughn','Wade']};
+let studio = null;
+function openStudio(){
+  if (engine !== 'ai'){ notice('Creating voices works with Natural voices. Switch to Natural voices at the top of the Cast panel.'); return; }
+  const g = libFor && (model.gender[libFor] === 'm' || model.gender[libFor] === 'f') ? model.gender[libFor] : (Math.random() < 0.5 ? 'f' : 'm');
+  studio = surpriseMix(g);
+  renderStudio();
+}
+function surpriseMix(g){
+  const pool_ = ACTORS.filter(a => a.g === g && a.q >= 3);
+  const a = pool_[Math.floor(Math.random() * pool_.length)];
+  let b = pool_[Math.floor(Math.random() * pool_.length)];
+  for (let k = 0; k < 10 && b === a; k++) b = pool_[Math.floor(Math.random() * pool_.length)];
+  const w = 35 + Math.floor(Math.random() * 31);
+  const used = new Set(blendActors().map(x => x.name));
+  const names = NAME_IDEAS[g].filter(n => !used.has(n));
+  return {name: names[Math.floor(Math.random() * names.length)] || '', rows: [[a.id, w], [b.id, 100 - w], ['', 0]]};
+}
+function studioParts(){ return studio.rows.filter(r => r[0] && r[1] > 0).map(r => [r[0], r[1]]); }
+function renderStudio(){
+  const opts = sel => `<option value="">None</option>` + [['Women', 'f'], ['Men', 'm']].map(([t, g]) => `<optgroup label="${t}">${ACTORS.filter(a => a.g === g).map(a => `<option value="${a.id}"${a.id === sel ? ' selected' : ''}>${esc(a.name)} (${a.accent})</option>`).join('')}</optgroup>`).join('');
+  const parts = studioParts(), total = parts.reduce((t, p) => t + p[1], 0) || 1;
+  const pct = r => r[0] && r[1] > 0 ? Math.round(r[1] / total * 100) + '%' : '—';
+  const A = parts.length ? makeBlendActor(studio.name || 'New voice', parts, '', 'custom') : null;
+  $('#libChips').innerHTML = ''; $('#libSearch').hidden = true; $('#libCreate').hidden = true;
+  $('#libList').innerHTML = `<div class="studio">
+    <h3>Create a voice</h3>
+    <p class="hint">Mix up to three natural voices. The new voice keeps their natural sound, so it still sounds like a real person, just a new one.</p>
+    ${studio.rows.map((r, i) => `<div class="st-row">
+      <select data-row="${i}" aria-label="Voice ${i + 1}">${opts(r[0])}</select>
+      <input type="range" min="0" max="100" step="1" value="${r[1]}" data-roww="${i}" aria-label="Amount of voice ${i + 1}"${r[0] ? '' : ' disabled'}>
+      <span class="st-pct">${pct(r)}</span></div>`).join('')}
+    <p class="st-mix">${A ? `${esc(A.g === 'f' ? 'Woman' : 'Man')} · ${esc(A.accent)} · ${esc(A.mix)}` : 'Pick at least two voices.'}</p>
+    <label class="st-name" for="stName">Name <input id="stName" value="${esc(studio.name)}" placeholder="Name your voice" autocomplete="off"></label>
+    <div class="st-actions">
+      <button class="mini" data-st="surprise">🎲 Surprise me</button>
+      <button class="mini" data-st="preview">${previewing === 'studio' ? '■ Stop' : '▶ Preview'}</button>
+      <button class="btn primary" data-st="save">${libFor ? `Save and use for ${esc(roleLabel(libFor))}` : 'Save voice'}</button>
+      <button class="linkish" data-st="back">Back to library</button>
+    </div>
+    <p class="hint small" id="stMsg" role="status"></p>
+  </div>`;
+}
+function closeStudio(){ studio = null; $('#libSearch').hidden = false; $('#libCreate').hidden = engine !== 'ai'; renderLibrary(); }
+$('#libCreate').addEventListener('click', openStudio);
+$('#libList').addEventListener('input', e => {
+  if (!studio) return;
+  if (e.target.id === 'stName'){ studio.name = e.target.value; return; }
+  if (e.target.dataset.roww != null){ studio.rows[+e.target.dataset.roww][1] = +e.target.value; const keepFocus = e.target.dataset.roww; renderStudio(); const el = document.querySelector(`[data-roww="${keepFocus}"]`); if (el) el.focus(); }
+});
+$('#libList').addEventListener('change', e => {
+  if (!studio || e.target.dataset.row == null) return;
+  const r = studio.rows[+e.target.dataset.row]; r[0] = e.target.value; if (r[0] && !r[1]) r[1] = 50; if (!r[0]) r[1] = 0;
+  renderStudio();
+});
+$('#libList').addEventListener('click', async e => {
+  if (!studio) return;
+  const b = e.target.closest('[data-st]'); if (!b) return;
+  const parts = studioParts();
+  const msg = t => { const m = $('#stMsg'); if (m) m.textContent = t; };
+  if (b.dataset.st === 'surprise'){ const g = (makeBlendActor('x', parts.length ? parts : [['af_heart', 1]], '', 'custom') || {g:'f'}).g; studio = surpriseMix(Math.random() < 0.5 ? g : (g === 'f' ? 'm' : 'f')); renderStudio(); }
+  else if (b.dataset.st === 'back'){ if (synth) synth.cancel(); stopAudio(); previewing = null; closeStudio(); }
+  else if (b.dataset.st === 'preview'){
+    if (previewing === 'studio'){ previewing = null; stopAudio(); renderStudio(); return; }
+    if (parts.length < 2){ msg('Pick at least two voices to mix.'); return; }
+    const A = makeBlendActor(studio.name || 'New voice', parts, '', 'custom');
+    previewing = 'studio'; renderStudio(); msg(aiReady ? 'Making a sample…' : 'Waiting for the voices to finish downloading…');
+    const own = libFor && model.segs.find(s => s.speaker === roleLabel(libFor));
+    try { await playActor(A, own ? chunks(own.say)[0] : null); } catch(err){ msg('The sample couldn’t be made.'); }
+    if (previewing === 'studio'){ previewing = null; if (studio) renderStudio(); }
+  } else if (b.dataset.st === 'save'){
+    if (parts.length < 2){ msg('Pick at least two voices to mix.'); return; }
+    const name = (studio.name || '').trim(); if (!name){ msg('Give your voice a name first.'); const n = $('#stName'); if (n) n.focus(); return; }
+    const id = recipeId(parts);
+    if (actorsAI().some(a => a.id === id)){ msg('That exact mix is already in your library.'); return; }
+    customBlends.push({name, parts}); store.set('customBlends', customBlends);
+    if (libFor){ chooseActor(libFor, id); renderCast(); }
+    libFilter = 'Yours'; closeStudio();
+    notice(`Saved “${esc(name)}” to your voices.`);
+  }
+});
+
+
+/* Cast card events */
+$('#roles').addEventListener('change', e => {
+  const role = e.target.closest('.role'); if (!role) return;
+  const key = role.dataset.key;
+  if (e.target.dataset.act === 'merge'){
+    const to = e.target.value; if (!to) return;
+    merges[key] = to; store.set('merges', merges);
+    Object.keys(overrides).forEach(k => { if (overrides[k] === key) overrides[k] = to; });
+    store.set(ovKey(), overrides);
+    const was = playing; pause(); rebuild(); if (was) play();
+    return;
+  }
+  if (e.target.dataset.f === 'rate'){
+    const table = engine === 'ai' ? castAI : castDev;
+    if (table[key]){ table[key].rate = +e.target.value; table[key].auto = false; }
+    saveCast();
+    if (playing && engine === 'ai'){ clearQueue(); prefetch(uIdx + 1); }
+  }
+});
+$('#roles').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const role = b.closest('.role'); if (!role) return;
+  const key = role.dataset.key;
+  const name = roleLabel(key);
+  if (b.dataset.act === 'lib'){ openLibrary(key); return; }
+  if (b.dataset.act === 'test'){
+    pause();
+    const line = model.segs.find(s => s.speaker === name);
+    const t = line ? chunks(line.say)[0] : `Hello, I'm ${name}.`;
+    if (engine === 'ai'){
+      if (aiFailed) return;
+      ensureCtx().resume();
+      const my = token, old = b.textContent; b.textContent = aiReady ? '…' : 'Loading…';
+      try {
+        const p = castAI[key] || {voice:'af_heart', rate:1};
+        const buf = await renderVoice(t, {voice:p.voice, pitch:1, fx:'', speedNow:(p.rate || 1) * speed}, 1);
+        if (my === token && !playing) playBuffer(buf);
+      } catch(err){} finally { b.textContent = old; }
+    } else if (synth){
+      unlockAudio(); synth.cancel();
+      synth.speak(utter(t, castDev[key]));
+    }
+  } else if (b.dataset.act === 'remove'){
+    ignore.add(key); extra = extra.filter(n => n !== key);
+    Object.keys(overrides).forEach(k => { if (overrides[k] === key) delete overrides[k]; });
+    store.set('ignore', [...ignore]); store.set('extra', extra);
+    store.set(ovKey(), overrides);
+    rebuild();
+  }
+});
+$('#resetCast').onclick = () => {
+  merges = {}; ignore = new Set(); overrides = {};
+  store.set('merges', merges); store.set('ignore', []); store.set(ovKey(), overrides);
+  pause(); rebuild();
+};
+$('#addForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const n = $('#addName').value.trim(); if (!n) return;
+  ignore.delete(n); if (!extra.includes(n)) extra.push(n);
+  store.set('ignore', [...ignore]); store.set('extra', extra);
+  $('#addName').value = ''; rebuild();
+});
+
+function showView(edit){
+  document.body.classList.remove('m-cast'); $('#tabCast').setAttribute('aria-pressed', 'false');
+  if (edit){ pause(); $('#src').value = text; }
+  $('#readView').hidden = edit; $('#editView').hidden = !edit;
+  $('#tabRead').setAttribute('aria-pressed', String(!edit));
+  $('#tabEdit').setAttribute('aria-pressed', String(edit));
+}
+function commitText(){
+  // Only apply edits when the editor is actually open; otherwise just show the reading view.
+  if ($('#editView').hidden){ showView(false); return; }
+  const v = $('#src').value;
+  if (v !== text){
+    const parts = splitChapters(v);
+    if (parts.length > 1 && v.trim() !== (book && book.chapters[chapIdx] ? book.chapters[chapIdx].text.trim() : '')){
+      book = {title:'Pasted text', chapters: parts}; saveBook();
+      loadChapter(0, false);
+      notice(`Found ${parts.length} chapters. Use the chapter list above the text to move between them.`);
+      return;
+    }
+    text = v; usingSample = false; store.set('text', text);
+    if (book && book.chapters[chapIdx]){ book.chapters[chapIdx].text = v; saveBook(); }
+    overrides = store.get(ovKey(), {}); cur = 0; clearQueue(); rebuild();
+  }
+  showView(false); scrollTo(0, 0);
+}
+$('#tabEdit').onclick = () => showView(true);
+$('#tabCast').onclick = () => {
+  if (!$('#editView').hidden) commitText();
+  document.body.classList.add('m-cast');
+  ['#tabRead','#tabEdit'].forEach(t => $(t).setAttribute('aria-pressed', 'false'));
+  $('#tabCast').setAttribute('aria-pressed', 'true');
+  scrollTo(0, 0);
+};
+$('#goEdit').onclick = () => showView(true);
+$('#tabRead').onclick = commitText;
+$('#doneEdit').onclick = commitText;
+$('#useSample').onclick = () => { $('#src').value = SAMPLE; };
+$('#clearTxt').onclick = () => { $('#src').value = ''; $('#src').focus(); };
+$('#fileIn').onchange = e => { const f = e.target.files[0]; e.target.value = ''; openFile(f); };
+$('#fileTop').onchange = e => { const f = e.target.files[0]; e.target.value = ''; openFile(f); };
+$('#chSel').onchange = e => loadChapter(+e.target.value, playing);
+$('#chPrev').onclick = () => loadChapter(chapIdx - 1, playing);
+$('#chNext').onclick = () => loadChapter(chapIdx + 1, playing);
+let dragDepth = 0;
+const hasFiles = e => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+document.addEventListener('dragenter', e => { if (!hasFiles(e)) return; e.preventDefault(); dragDepth++; $('#drop').hidden = false; });
+document.addEventListener('dragover', e => { if (hasFiles(e)) e.preventDefault(); });
+document.addEventListener('dragleave', e => { if (!hasFiles(e)) return; if (--dragDepth <= 0 || !e.relatedTarget){ dragDepth = 0; $('#drop').hidden = true; } });
+['dragend', 'mouseleave', 'blur'].forEach(ev => (ev === 'blur' ? window : document).addEventListener(ev, () => { dragDepth = 0; $('#drop').hidden = true; }));
+document.addEventListener('drop', e => { if (!hasFiles(e)) return; e.preventDefault(); dragDepth = 0; $('#drop').hidden = true; openFile(e.dataTransfer.files[0]); });
+document.addEventListener('keydown', e => {
+  if (e.code !== 'Space' || /INPUT|TEXTAREA|SELECT|BUTTON/.test(e.target.tagName)) return;
+  e.preventDefault(); playing ? pause() : play();
+});
+
+/* ---------- Start ---------- */
+function notice(msg){ const n = $('#notice'); n.innerHTML = msg; n.hidden = !msg; }
+if (synth){
+  loadVoices();
+  synth.onvoiceschanged = () => { loadVoices(); if (model){ fillDevVoices(); if (engine === 'device') renderCast(); } };
+}
+if (!(book && book.chapters && book.chapters[chapIdx] && book.chapters[chapIdx].text === text)){ book = null; chapIdx = 0; }
+const DESKTOP = /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
+try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e){}
+if (!HOSTED && (DESKTOP || location.protocol === 'https:') && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+rebuild();
+renderChapters();
+if (HOSTED){
+  // Natural voices need downloads this page can't make, so it uses the phone's own voices.
+  engine = 'device';
+  document.querySelector('.engine').hidden = true;
+  $('#modelBox').hidden = true;
+  ['#aiIntroGem', '#aiKey', '#aiPrivacy'].forEach(id => $(id).hidden = true);
+  $('#aiIntroClaude').hidden = false;
+  $('#aiBadge').textContent = 'Claude';
+  $('#aiRun').disabled = true;
+  renderCast(); updateUI();
+  window.claude.use('sample').then(fn => {
+    claudeSample = fn || null;
+    if (!fn){ document.querySelector('.ai-box').hidden = true; return; }
+    $('#aiRun').disabled = false;
+    maybeAutoAI(false);
+  });
+} else {
+  if (aiKey) loadModels().then(() => maybeAutoAI()).catch(e => setAiState(e.message, true));
+  if (engine === 'ai') startNatural();
+}
+
+})();
+</script>
+</body>
+</html>
